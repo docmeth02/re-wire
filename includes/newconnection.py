@@ -30,8 +30,8 @@ class NewConnection(npyscreen.FormBaseNew):
         self.connect = self.add(npyscreen.MiniButton, relx=start_x+6, rely=start_y+4,
                                 name="Connect")
         self.quit = self.add(npyscreen.MiniButton, relx=start_x+16, rely=start_y+4, name="Quit")
-        self.quit.handlers[curses.ascii.NL] = self.exit_application
-        self.connect.handlers[curses.ascii.NL] = self.doConnect
+        self.quit.add_handlers({curses.ascii.NL: self.exit_application})
+        self.connect.add_handlers({curses.ascii.NL: self.doConnect})
 
     def exit_application(self, *args):
         self.parent.shutdown()

@@ -20,6 +20,7 @@ class userlist():
             self.widgets[akey] = self.parent.add(npyscreen.FixedText, name=akey, relx=self.relx, rely=self.rely+akey,
                                                  value="", max_height=1, max_width=self.width, width=self.width,
                                                  editable=0)
+            self.widgets[akey].add_handlers({curses.ascii.NL: self.itemSelected})
         for key in order[self.parent.chat]:
             auser = self.parent.librewired.getUserByID(key)
             if not auser:
@@ -30,7 +31,7 @@ class userlist():
                     acctype = 1
             if int(auser.admin):
                 acctype = 2
-            self.users.append(UserListItem(self, int(auser.userid), auser.nick, int(auser.idle), acctype))
+            self.users.append(UserListItem(self, int(auser.userid), auser.nick, auser.status, int(auser.idle), acctype))
         self.updateList()
         return 1
 
@@ -93,14 +94,30 @@ class userlist():
                     acctype = 1
             if int(auser.admin):
                 acctype = 2
-            self.users.append(UserListItem(self, int(auser.userid), auser.nick, int(auser.idle), acctype))
+            self.users.append(UserListItem(self, int(auser.userid), auser.nick, auser.status, int(auser.idle), acctype))
             self.updateList()
             return 1
         return 0
 
     def itemSelected(self, *args):
-        npyscreen.notify_confirm(str(args))
+        #npyscreen.notify_confirm(str(args))
         pass
+
+    def checkStatusChanged(self, userid, newstatus):
+        for auser in self.users:
+            if auser.userid == userid:
+                if auser.status == newstatus:
+                    return 0
+                return 1
+        return 1
+
+    def checkNickChanged(self, userid, newnick):
+        for auser in self.users:
+            if auser.userid == userid:
+                if auser.nick == newnick:
+                    return 0
+                return auser.nick
+        return 0
 
     def yieldnicks(self):
         nicks = []
@@ -110,10 +127,11 @@ class userlist():
 
 
 class UserListItem():
-    def __init__(self, parent, userid, nick, isIdle=0, acctype=0):
+    def __init__(self, parent, userid, nick, status, isIdle=0, acctype=0):
         self.parent = parent
         self.userid = userid
         self.nick = nick
+        self.status = status
         self.pos = -1
         self.isIdle = isIdle
         self.acctype = acctype  # guest / user / admin

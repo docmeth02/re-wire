@@ -86,8 +86,18 @@ class rewiredInstance():
 
     def statusChange(self, msg):
         userid = int(msg)
+        user = self.librewired.getUserByID(userid)
         for akey, achat in self.chats.items():
-            achat.userlist.updateUser(userid)
+            for auser in achat.userlist.users:
+                if int(auser.userid) == int(userid):
+                    oldnick = achat.userlist.checkNickChanged(userid, user.nick)
+                    if oldnick:
+                            achat.appendChat(">>> %s changed name to %s <<<" % (oldnick, user.nick))
+                            achat.userlist.updateUser(userid)
+                            continue
+                    if achat.userlist.checkStatusChanged(userid, user.status):
+                        achat.appendChat(">>> %s changed status to %s <<<" % (user.nick, user.status))
+                        achat.userlist.updateUser(userid)
 
     def updateUserList(self, msg, leave=False, client=False):
         try:
