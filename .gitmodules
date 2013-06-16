@@ -1,0 +1,3 @@
+[submodule "librewired"]
+	path = librewired
+	url = https://github.com/docmeth02/lib-rewired.git

@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from signal import signal, SIGINT, SIGTERM
+from time import sleep, time
+from logging import getLogger, DEBUG, StreamHandler
+from textwrap import wrap
+from includes import newconnection, rewiredInstance
+import weakref
+import npyscreen
+import sys
+import curses
+
+
+class reWire(npyscreen.NPSAppManaged):
+    def onStart(self):
+        npyscreen.setTheme(npyscreen.Themes.ColorfulTheme)
+        self.conID = 0
+        self.servers = {}
+        self.formIDs = []
+        self.registerForm("MAIN", newconnection.NewConnection(self))
+
+    def shutdown(self):
+        for akey, aserver in self.servers.items():
+            for aform in aserver.forms:
+                aserver.closeForm(aform)
+        return 1
+
+    def removeConnection(self, conID):
+        del(self.servers[conID])
+
+    def registerForm(self, f_id, fm):
+        fm.parentApp = weakref.proxy(self)
+        self._Forms[f_id] = fm
+        self.formIDs.append(f_id)
+
+    def removeForm(self, f_id):
+        del self._Forms[f_id].parentApp
+        del self._Forms[f_id]
+        for i in range(0, len(self.formIDs)):
+            if self.formIDs[i] == f_id:
+                self.formIDs.pop(i)
+
+    def switchNextForm(self, *args):
+        if len(self.formIDs) <= 1:
+            return 0
+        key = 0
+        for i in range(0, len(self.formIDs)):
+            if self.formIDs[i] == str(self._LAST_NEXT_ACTIVE_FORM.formid):
+                key = i + 1
+        if key >= len(self.formIDs):
+            key = 0
+        self.switchForm(self.formIDs[key])
+
+
+app = reWire()
+app.run()
