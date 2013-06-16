@@ -33,6 +33,16 @@ class chatview(npyscreen.FormBaseNew):
         self.chatinput.handlers[curses.ascii.NL] = self.chatinputenter
         self.chatinput.handlers[curses.KEY_BACKSPACE] = self.chatinput.backspace
 
+    def deferred_update(self, instance, forced):
+        if self.parent.getActiveForm() == self.formid:  # we're active right now
+            if forced:
+                instance.display()
+            else:
+                instance.update()
+            return 1
+        # since we are not the active form, there is no need to update the screen
+        return 0
+
     def chatinputenter(self, *args):
         self.chatinput.lastcomplete = 0
         self.chatinput.laststr = 0
@@ -74,7 +84,7 @@ class chatview(npyscreen.FormBaseNew):
         for achat in lines:
             self.box.values += [achat]
         self.box.h_show_end("")
-        self.box.display()
+        self.deferred_update(self.box, True)
 
     def updateTopic(self, topic):
         self.topic.value = topic
@@ -82,7 +92,7 @@ class chatview(npyscreen.FormBaseNew):
             self.topic.hidden = 1
         elif self.topic.hidden:
             self.topic.hidden = 0
-        self.topic.display()
+        self.deferred_update(self.topic, True)
         return
 
     def closeForm(self, *args):

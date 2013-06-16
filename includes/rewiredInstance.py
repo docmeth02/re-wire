@@ -115,3 +115,6 @@ class rewiredInstance():
         if msg[0] in self.chats:
             self.chats[msg[0]].updateTopic(msg[1]['text'])
         return
+
+    def getActiveForm(self):
+        return self.parent.returnActiveForm()

@@ -37,8 +37,11 @@ class reWire(npyscreen.NPSAppManaged):
         del self._Forms[f_id].parentApp
         del self._Forms[f_id]
         for i in range(0, len(self.formIDs)):
-            if self.formIDs[i] == f_id:
-                self.formIDs.pop(i)
+            try:
+                if self.formIDs[i] == f_id:
+                    self.formIDs.pop(i)
+            except IndexError:
+                pass
 
     def switchNextForm(self, *args):
         if len(self.formIDs) <= 1:
@@ -51,6 +54,8 @@ class reWire(npyscreen.NPSAppManaged):
             key = 0
         self.switchForm(self.formIDs[key])
 
+    def returnActiveForm(self):
+        return str(self._LAST_NEXT_ACTIVE_FORM.formid)
 
 app = reWire()
 app.run()

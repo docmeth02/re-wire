@@ -1,4 +1,5 @@
 import npyscreen
+import curses
 
 
 class autocompleter(npyscreen.Autocomplete):

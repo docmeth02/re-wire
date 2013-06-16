@@ -44,7 +44,7 @@ class userlist():
                 self.widgets[i].value = name
                 self.widgets[i].editable = 1
                 self.widgets[i].color = colors[self.users[i].acctype]
-                self.widgets[i].display()
+                self.parent.deferred_update(self.widgets[i], True)
                 self.users[i].pos = i
                 self.users[i].isupdated = 0
             i += 1
@@ -53,7 +53,7 @@ class userlist():
                 self.widgets[i].value = ""
                 self.widgets[i].color = ''
                 self.widgets[i].editable = 0
-                self.widgets[i].display()
+                self.parent.deferred_update(self.widgets[i], True)
         return 1
 
     def removeUser(self, userid):
