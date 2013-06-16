@@ -3,6 +3,7 @@ import curses
 from librewired import rewiredclient
 from includes import chatView
 
+
 class rewiredInstance():
     def __init__(self, parent, conID, host, port, login, password, autoreconnect):
         self.parent = parent
@@ -76,6 +77,10 @@ class rewiredInstance():
         self.gotChat(chat, True)
 
     def sendChat(self, chatid, chat):
+        try:
+                chat = chat.encode("UTF-8")
+        except:
+                pass
         self.librewired.sendChat(int(chatid), chat)
         return
 
