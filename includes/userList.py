@@ -13,7 +13,6 @@ class userlist():
         self.widgets = {}
 
     def build(self, userlist, order):
-        npyscreen.notify_confirm(str(order))
         if not self.parent.chat in order:
             npyscreen.notify_confirm("No such order: %s" % self.parent.chat)
             return 0
