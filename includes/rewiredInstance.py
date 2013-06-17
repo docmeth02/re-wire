@@ -102,9 +102,10 @@ class rewiredInstance():
                     if oldnick:
                             achat.appendChat(">>> %s changed name to %s <<<" % (oldnick, user.nick))
                             achat.userlist.updateUser(userid)
-                            continue
-                    if achat.userlist.checkStatusChanged(userid, user.status):
+                    elif achat.userlist.checkStatusChanged(userid, user.status):
                         achat.appendChat(">>> %s changed status to %s <<<" % (user.nick, user.status))
+                        achat.userlist.updateUser(userid)
+                    else:
                         achat.userlist.updateUser(userid)
 
     def updateUserList(self, msg, leave=False, client=False):
