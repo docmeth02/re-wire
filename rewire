@@ -3,7 +3,6 @@
 from signal import signal, SIGINT, SIGTERM
 from time import sleep, time
 from logging import getLogger, DEBUG, StreamHandler
-from textwrap import wrap
 from includes import newconnection, rewiredInstance
 import weakref
 import npyscreen

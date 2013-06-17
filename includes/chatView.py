@@ -1,6 +1,7 @@
 import npyscreen
 import curses
 from includes import commandHandler, userList, autoCompleter
+from textwrap import wrap
 
 
 class chatview(npyscreen.FormBaseNew):
