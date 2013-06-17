@@ -26,7 +26,7 @@ class rewiredInstance():
         self.librewired.nick = "re:wire"
         self.librewired.appname = "re:wire"
         self.librewired.version = "WIP"
-        self.librewired.status = "default status"
+        self.librewired.status = "Another re:wire client"
         self.librewired.autoreconnect = self.autoreconnect
         self.librewired.start()
         self.chats = {}
