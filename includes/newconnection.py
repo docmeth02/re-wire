@@ -48,6 +48,14 @@ class NewConnection(npyscreen.FormBaseNew):
             self.server.edit()
             return 0
         server = self.server.value
+        port = 2000
+        if ':' in server:
+            server, port = server.split(':', 1)
+            try:
+                port = int(port)
+            except:
+                self.server.edit()
+                return 0
         if not self.user.value:
             self.user.edit()
             return 0
@@ -57,7 +65,7 @@ class NewConnection(npyscreen.FormBaseNew):
         conID = self.parent.conID
         self.parent.conID += 1
         self.parent.servers[conID] = rewiredInstance.rewiredInstance(self.parent,
-                                                                     conID, server, 2000, user, password, autoreconnect)
+                                                                     conID, server, port, user, password, autoreconnect)
         if self.parent.servers[conID].fail:
             if self.parent.servers[conID].fail == 1:
                 npyscreen.notify_confirm("Failed to connect to %s" % server, "Failed to connect")
