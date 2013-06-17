@@ -30,6 +30,7 @@ class rewiredInstance():
         # setup lib:rewired handlers
         self.librewired.notify("__ClientLeave", self.clientLeft)
         self.librewired.notify("__ClientKicked", self.clientKicked)
+        self.librewired.notify("__ClientBanned", self.clientBanned)
         self.librewired.notify("__ClientJoin", self.updateUserList)
         self.librewired.subscribe(300, self.gotChat)
         self.librewired.subscribe(301, self.gotActionChat)
@@ -172,16 +173,23 @@ class rewiredInstance():
             achat.appendChat(">>> reconnected to %s successfully <<<" % self.host)
         return
 
-    def clientKicked(self, *args):
-        killerid, victimid, msg = args[0]
+    def clientKicked(self, params, ban=False):
+        killerid, victimid, text = params
         victim = self.librewired.getUserByID(int(victimid))
-        killer = self.librewired.getUserByID(int(killerid))
-        if msg:
-            msg = ": %s" % msg
-        for akey, achat in self.chats.items():
-            achat.appendChat(">>> %s was kicked by %s%s <<<" % (victim.nick, killer.nick, msg))
         if int(victimid) == int(self.librewired.id):
             curses.beep()
             with self.librewired.lock:
                 self.librewired.autoreconnect = 0
+        killer = self.librewired.getUserByID(int(killerid))
+        if text:
+            text = ": %s" % text
+        msg = ">>> %s was kicked by %s%s <<<"
+        if ban:
+            msg = ">>> %s was banned by %s%s <<<"
+        for akey, achat in self.chats.items():
+            achat.appendChat(msg % (victim.nick, killer.nick, text))
         return
+
+    def clientBanned(self, params):
+        curses.beep()
+        self.clientKicked(params, True)
