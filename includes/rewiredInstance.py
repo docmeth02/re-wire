@@ -29,6 +29,7 @@ class rewiredInstance():
 
         # setup lib:rewired handlers
         self.librewired.notify("__ClientLeave", self.clientLeft)
+        self.librewired.notify("__ClientKicked", self.clientKicked)
         self.librewired.notify("__ClientJoin", self.updateUserList)
         self.librewired.subscribe(300, self.gotChat)
         self.librewired.subscribe(301, self.gotActionChat)
@@ -168,4 +169,18 @@ class rewiredInstance():
     def reconnected(self):
         for akey, achat in self.chats.items():
             achat.appendChat(">>> reconnected to %s successfully <<<" % self.host)
+        return
+
+    def clientKicked(self, *args):
+        killerid, victimid, msg = args[0]
+        victim = self.librewired.getUserByID(int(victimid))
+        killer = self.librewired.getUserByID(int(killerid))
+        if msg:
+            msg = ": %s" % msg
+        for akey, achat in self.chats.items():
+            achat.appendChat(">>> %s was kicked by %s%s <<<" % (victim.nick, killer.nick, msg))
+        if int(victimid) == int(self.librewired.id):
+            curses.beep()
+            with self.librewired.lock:
+                self.librewired.autoreconnect = 0
         return
