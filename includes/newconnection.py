@@ -77,4 +77,8 @@ class NewConnection(npyscreen.FormBaseNew):
         form = "%s-CHAT1" % (conID)
         self.parent.servers[conID].forms.append(form)
         self.parent.registerForm(form, self.parent.servers[conID].chats[1])
+        self.server.value = "re-wired.info"
+        self.user.value = "guest"
+        self.password.value = ""
+        self.reconnect.value = False
         self.parent.switchForm(form)
