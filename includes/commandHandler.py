@@ -1,4 +1,5 @@
 import npyscreen
+from os import path
 
 
 class commandhandler():
@@ -21,7 +22,7 @@ class commandhandler():
         elif command == '/status':
             self.changeStatus(parameter)
         elif command == '/icon':
-            pass
+            self.changeIcon(parameter)
         elif command == '/ping':
             pass
         elif command == '/topic':
@@ -57,3 +58,10 @@ class commandhandler():
             if self.librewired.sendChat(self.parent.chat, chattext, True):
                 return 1
         return 0
+
+    def changeIcon(self, iconpath):
+        if not iconpath:
+            return 0
+        if not self.librewired.loadIcon(iconpath):
+            return 0
+        return 1

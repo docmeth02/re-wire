@@ -2,6 +2,8 @@ import npyscreen
 import curses
 from librewired import rewiredclient
 from includes import chatView
+from sys import argv
+from os import path
 
 
 class rewiredInstance():
@@ -18,6 +20,9 @@ class rewiredInstance():
         self.autoreconnect = autoreconnect
         self.shutdown = 0
         self.librewired = rewiredclient.client(self)
+        self.homepath = path.dirname(argv[0])
+        if path.exists(path.join(self.homepath, "data/default.png")):
+            self.librewired.loadIcon(path.join(self.homepath, "data/default.png"))
         self.librewired.nick = "re:wire"
         self.librewired.appname = "re:wire"
         self.librewired.version = "WIP"
