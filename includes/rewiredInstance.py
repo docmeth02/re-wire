@@ -22,6 +22,7 @@ class rewiredInstance():
         self.librewired.appname = "re:wire"
         self.librewired.version = "WIP"
         self.librewired.status = "default status"
+        self.librewired.autoreconnect = self.autoreconnect
         self.librewired.start()
         self.chats = {}
         self.fail = 0
@@ -34,6 +35,8 @@ class rewiredInstance():
         self.librewired.notify("__ClientStatusChange", self.statusChange)
         self.librewired.notify("__ChatTopic", self.gotChatTopic)
         self.librewired.notify("__PrivateChatInvite", self.privateChatInvite)
+        self.librewired.notify("__ConnectionLost", self.connectionLost)
+        self.librewired.notify("__Reconnected", self.reconnected)
 
         if not self.librewired.connect(self.host, self.port):
             self.fail = 1
@@ -157,3 +160,12 @@ class rewiredInstance():
     def getActiveForm(self):
         return self.parent.returnActiveForm()
 
+    def connectionLost(self):
+        for akey, achat in self.chats.items():
+            achat.appendChat(">>> lost connection to %s <<<" % self.host)
+        return
+
+    def reconnected(self):
+        for akey, achat in self.chats.items():
+            achat.appendChat(">>> reconnected to %s successfully <<<" % self.host)
+        return
