@@ -33,6 +33,7 @@ class rewiredInstance():
         self.librewired.subscribe(301, self.gotActionChat)
         self.librewired.notify("__ClientStatusChange", self.statusChange)
         self.librewired.notify("__ChatTopic", self.gotChatTopic)
+        self.librewired.notify("__PrivateChatInvite", self.privateChatInvite)
 
         if not self.librewired.connect(self.host, self.port):
             self.fail = 1
@@ -49,9 +50,6 @@ class rewiredInstance():
             if self.forms[i] == formid:
                 self.forms.pop(i)
                 break
-        self.parent.setNextForm("MAIN")
-        self.parent.removeForm(formid)
-        self.parent.switchFormNow()
         if formid == "%s-CHAT1" % (self.conID):
             # public chat close means disconnect and shutdown this connection
             self.librewired.disconnect()
@@ -59,8 +57,14 @@ class rewiredInstance():
             if not self.librewired.join(5):
                 pass  # error?
             for aform in self.forms:
-                self.parent.removeForm(aform.formid)
+                if type(aform) is not str:
+                    self.parent.removeForm(aform.formid)
             self.parent.removeConnection(self.conID)
+            self.parent.setNextForm("MAIN")
+        else:
+            self.parent.setNextForm("%s-CHAT1" % (self.conID))
+        self.parent.removeForm(formid)
+        self.parent.switchFormNow()
 
     def nextForm(self, *args):
         self.parent.switchNextForm()
@@ -117,6 +121,30 @@ class rewiredInstance():
                 self.chats[chatid].appendChat(">>> %s joined <<<" % nick)
         return 1
 
+    def privateChatInvite(self, chatid, userid):
+        chatid = int(chatid)
+        userid = int(userid)
+        user = self.librewired.getUserByID(userid)
+        form = "%s-CHAT%s" % (self.conID, chatid)
+
+        self.chats[chatid] = chatView.chatInvite(self, form, chatid, user)
+        self.parent.servers[self.conID].forms.append(form)
+        self.parent.registerForm(form, self.parent.servers[self.conID].chats[chatid])
+        self.parent.switchForm(form)
+        self.chats[chatid].display()
+        return
+
+    def privateChatJoin(self, chatid):
+        form = "%s-CHAT%s" % (self.conID, chatid)
+
+        self.chats[chatid] = chatView.chatview(self, form, chatid)
+        self.parent.servers[self.conID].forms.append(form)
+        self.parent.registerForm(form, self.parent.servers[self.conID].chats[chatid])
+        self.chats[chatid].userlist.build(self.librewired.userlist, self.librewired.userorder)
+        self.parent.switchForm(form)
+        self.chats[chatid].display()
+        return
+
     def clientLeft(self, msg, client):
         self.updateUserList(msg, True, client)
         return
@@ -128,3 +156,4 @@ class rewiredInstance():
 
     def getActiveForm(self):
         return self.parent.returnActiveForm()
+

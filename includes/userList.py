@@ -17,9 +17,9 @@ class userlist():
             npyscreen.notify_confirm("No such order: %s" % self.parent.chat)
             return 0
         for akey in range(0, self.maxheight):
-            self.widgets[akey] = self.parent.add(npyscreen.FixedText, name=akey, relx=self.relx, rely=self.rely+akey,
-                                                 value="", max_height=1, max_width=self.width, width=self.width,
-                                                 editable=0)
+            self.widgets[akey] = self.parent.add(npyscreen.FixedText, name="%s-%s" % (self.parent.chat, akey),
+                                                 relx=self.relx, rely=self.rely+akey, value="", max_height=1,
+                                                 max_width=self.width, width=self.width, editable=0)
             self.widgets[akey].add_handlers({curses.ascii.NL: self.itemSelected})
         for key in order[self.parent.chat]:
             auser = self.parent.librewired.getUserByID(key)

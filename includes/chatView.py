@@ -19,7 +19,7 @@ class chatview(npyscreen.FormBaseNew):
     def create(self):
         chat = "Public Chat"
         if self.chat != 1:
-            chat = "Private Chat %s @s" % (self.chatid, self.parent.host)
+            chat = "Private Chat %s" % self.chat
         self.name = "re:wire @%s: %s " % (self.parent.host, chat)
         self.box = self.add(npyscreen.Pager, rely=1, relx=1, width=self.max_x - 18, height=self.max_y - 4,
                             max_width=self.max_x - 18, max_height=self.max_y - 5, editable=False)
@@ -28,7 +28,7 @@ class chatview(npyscreen.FormBaseNew):
         self.topic = self.add(npyscreen.TitleText, name="Topic:", value="", begin_entry_at=9, hidden=1,
                               relx=1, rely=self.max_y - 3, editable=False, max_width=self.max_x - 20)
         self.chatinput = self.add(autoCompleter.autocompleter, relx=7, rely=self.max_y - 4,
-                                  begin_entry_at=1, max_width=self.max_x - 15)
+                                  begin_entry_at=1, max_width=self.max_x - 15, name="%s-%s" % (self.formid, self.chat))
         self.chatinput.hookParent(self)
         self.chatinput.handlers[curses.ascii.NL] = self.chatinputenter
         self.chatinput.handlers[curses.KEY_BACKSPACE] = self.chatinput.backspace
@@ -96,6 +96,50 @@ class chatview(npyscreen.FormBaseNew):
         return
 
     def closeForm(self, *args):
+        self.librewired.leaveChat(self.chat)
         self.editable = False
         self.editing = False
         self.parent.closeForm(self.formid)
+
+
+class chatInvite(npyscreen.FormBaseNew):
+    def __init__(self, parent, formid, chatid, user, **kwargs):
+        self.chat = chatid
+        self.parent = parent
+        self.formid = formid
+        self.user = user
+        super(chatInvite, self).__init__(relx=5, rely=5, lines=12, columns=60, **kwargs)
+        self.show_atx = 10
+        self.show_aty = 2
+
+    def create(self):
+        self.name = "re:wire @%s" % (self.parent.host)
+        self.add_handlers({"^T": self.parent.nextForm})
+        self.add_handlers({"^D": self.closeForm})
+        self.label = self.add(npyscreen.FixedText, name="label", editable = 0,
+                              value="User %s has invited you to a private chat" % self.user.nick)
+        self.join = self.add(npyscreen.ButtonPress, name="Join", relx=12, rely=5)
+        self.join.whenPressed = self.doJoin
+        self.ignore = self.add(npyscreen.ButtonPress, name="Ignore", relx=21, rely=5)
+        self.ignore.whenPressed = self.doIgnore
+        self.decline = self.add(npyscreen.ButtonPress, name="Decline", relx=32, rely=5)
+        self.decline.whenPressed = self.doDecline
+
+    def closeForm(self, *args):
+        self.editable = False
+        self.editing = False
+        self.parent.closeForm(self.formid)
+
+    def doJoin(self, *args, **kwargs):
+        if not self.parent.librewired.joinPrivateChat(self.chat):
+            curses.beep()
+            return 0
+        self.parent.closeForm(self.formid)
+        self.parent.privateChatJoin(self.chat)
+
+    def doIgnore(self, *args, **kwargs):
+        self.closeForm()
+
+    def doDecline(self, *args, **kwargs):
+        self.parent.librewired.declinePrivateChat(self.chat)
+        self.closeForm()
