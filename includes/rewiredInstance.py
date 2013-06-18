@@ -4,7 +4,7 @@ from librewired import rewiredclient
 from includes import chatView
 from sys import argv
 from os import path
-
+from time import sleep
 
 class rewiredInstance():
     def __init__(self, parent, conID, host, port, login, password, autoreconnect, profile):
@@ -61,6 +61,12 @@ class rewiredInstance():
         if not self.fail:
             formid = "%s-CHAT1" % (self.conID)
             self.chats[1] = chatView.chatview(self, formid, 1)  # init public chat
+
+            for i in range(0, 30):  # slow servers may need some time to send us the userlist
+                if 1 in self.librewired.userorder:
+                    break
+                sleep(0.1)
+
             self.chats[1].userlist.build(self.librewired.userlist, self.librewired.userorder)
 
     def closeForm(self, formid):
@@ -181,7 +187,11 @@ class rewiredInstance():
         return
 
     def getActiveForm(self):
-        return self.parent.returnActiveForm()
+        try:
+            form = self.parent.returnActiveForm()
+        except AttributeError:
+            return 0
+        return form
 
     def connectionLost(self):
         for akey, achat in self.chats.items():

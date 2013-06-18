@@ -122,6 +122,41 @@ class NewConnection(npyscreen.FormBaseNew):
             self.appliedBookmark = 'defaults'
         self.parent.switchForm(form)
 
+    def runAutoconnect(self):
+        for aserver in self.config.sections():
+            if aserver != "defaults":
+                if int(self.config.get(aserver, 'connectonstart')):
+                    self.autoconnect(aserver)
+
+    def autoconnect(self, bookmarkname, switchTo=False):
+        if not self.config.has_section(bookmarkname):
+            return 0
+
+        server = self.config.get(bookmarkname, 'server')
+        port = self.config.get(bookmarkname, 'port')
+        user = self.config.get(bookmarkname, 'user')
+        password = self.config.get(bookmarkname, 'password')
+        autoreconnect = int(self.config.get(bookmarkname, 'autoreconnect'))
+
+        conID = self.parent.conID
+        self.parent.conID += 1
+        self.parent.servers[conID] = rewiredInstance.rewiredInstance(self.parent,
+                                                                     conID, server, port, user, password, autoreconnect,
+                                                                     bookmarkname)
+        if self.parent.servers[conID].fail:
+            if self.parent.servers[conID].fail == 1:
+                npyscreen.notify_confirm("Failed to connect to %s" % server, "Failed to connect")
+            if self.parent.servers[conID].fail == 2:
+                npyscreen.notify_confirm("Login Failed", "Login Failed")
+            self.parent.servers[conID].librewired.keepalive = 0
+            del(self.parent.servers[conID])
+            return 0
+        form = "%s-CHAT1" % (conID)
+        self.parent.servers[conID].forms.append(form)
+        self.parent.registerForm(form, self.parent.servers[conID].chats[1])
+        if switchTo:
+            self.parent.switchForm(form)
+
 
 class bookmarkPopUp():
     def __init__(self, parent, servers):

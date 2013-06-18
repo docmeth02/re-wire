@@ -21,7 +21,9 @@ class reWire(npyscreen.NPSAppManaged):
         self.formIDs = []
         self.homepath = path.dirname(argv[0])
         self.config = rewireFunctions.load_config(self.homepath)
-        self.registerForm("MAIN", newconnection.NewConnection(self))
+        self.chooser = newconnection.NewConnection(self)
+        self.registerForm("MAIN", self.chooser)
+        self.chooser.runAutoconnect()
 
     def shutdown(self):
         for akey, aserver in self.servers.items():
