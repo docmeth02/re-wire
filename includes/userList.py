@@ -73,7 +73,7 @@ class userlist():
                 i += 1
             if i != self.maxheight:
                 for i in range(i, self.maxheight):
-                    self.widgets[i].value = ""
+                    self.widgets[i].value = " " * self.width
                     self.widgets[i].color = ''
                     self.widgets[i].editable = 0
                     self.parent.deferred_update(self.widgets[i], True)

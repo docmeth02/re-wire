@@ -5,7 +5,7 @@ from textwrap import wrap
 from threading import RLock
 
 
-class chatview(npyscreen.FormBaseNew):
+class chatview(npyscreen.FormMutt):
     def __init__(self, parent, formid, chatid, **kwargs):
         self.chat = chatid
         self.parent = parent
@@ -24,14 +24,20 @@ class chatview(npyscreen.FormBaseNew):
         if self.chat != 1:
             chat = "Private Chat %s" % self.chat
         self.name = "re:wire @%s: %s " % (self.parent.host, chat)
-        self.box = self.add(npyscreen.Pager, rely=1, relx=1, width=self.max_x - 18, height=self.max_y - 4,
-                            max_width=self.max_x - 18, max_height=self.max_y - 5, editable=False)
-        self.chatlabel = self.add(npyscreen.TitleText, name="Chat:", relx=1, rely=self.max_y - 4, editable=False)
-        self.userlist = userList.userlist(self, self.max_x - 17, 1, 14, self.max_y - 5)
+        self.title = self.add(npyscreen.FixedText, name="title", editable=0, rely=0, value=self.name)
+        self.box = self.add(npyscreen.Pager, rely=1, relx=0, width=self.max_x - 18, height=self.max_y - 4,
+                            max_width=self.max_x - 17, max_height=self.max_y - 3, editable=False, color="CURSOR",
+                            widgets_inherit_color=True)
+        self.userlist = userList.userlist(self, self.max_x - 17, 1, 16, self.max_y - 3)
+
         self.topic = self.add(npyscreen.TitleText, name="Topic:", value="", begin_entry_at=9, hidden=1,
-                              relx=1, rely=self.max_y - 3, editable=False, max_width=self.max_x - 20)
-        self.chatinput = self.add(autoCompleter.autocompleter, relx=7, rely=self.max_y - 4,
-                                  begin_entry_at=1, max_width=self.max_x - 15, name="%s-%s" % (self.formid, self.chat))
+                              relx=0, rely=self.max_y - 3, editable=False, max_width=self.max_x - 20)
+        self.topic.label_widget.hidden = 1
+
+        self.chatlabel = self.add(npyscreen.TitleText, name="Chat: ", relx=0, rely=self.max_y - 1, editable=False)
+        self.chatinput = self.add(autoCompleter.autocompleter, relx=6, rely=self.max_y - 1,
+                                  begin_entry_at=1, max_width=self.max_x - 17, name="%s-%s" % (self.formid, self.chat))
+
         self.chatinput.hookParent(self)
         self.chatinput.handlers[curses.ascii.NL] = self.chatinputenter
         self.chatinput.handlers[curses.KEY_BACKSPACE] = self.chatinput.backspace
@@ -93,9 +99,12 @@ class chatview(npyscreen.FormBaseNew):
         self.topic.value = topic
         if not self.topic.value:
             self.topic.hidden = 1
-        elif self.topic.hidden:
+            self.topic.label_widget.hidden = 1
+        elif self.topic.hidden or self.topic.label_widget.hidden:
             self.topic.hidden = 0
+            self.topic.label_widget.hidden = 0
         self.deferred_update(self.topic, True)
+        self.deferred_update(self.topic.label_widget, True)
         return
 
     def closeForm(self, *args):
@@ -119,7 +128,7 @@ class chatInvite(npyscreen.FormBaseNew):
         self.name = "re:wire @%s" % (self.parent.host)
         self.add_handlers({"^T": self.parent.nextForm})
         self.add_handlers({"^D": self.closeForm})
-        self.label = self.add(npyscreen.FixedText, name="label", editable = 0,
+        self.label = self.add(npyscreen.FixedText, name="label", editable=0,
                               value="User %s has invited you to a private chat" % self.user.nick)
         self.join = self.add(npyscreen.ButtonPress, name="Join", relx=12, rely=5)
         self.join.whenPressed = self.doJoin
