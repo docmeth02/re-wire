@@ -6,6 +6,7 @@ from sys import argv
 from os import path
 from time import sleep
 
+
 class rewiredInstance():
     def __init__(self, parent, conID, host, port, login, password, autoreconnect, profile):
         self.parent = parent
@@ -52,22 +53,23 @@ class rewiredInstance():
         self.librewired.notify("__PrivateChatInvite", self.privateChatInvite)
         self.librewired.notify("__ConnectionLost", self.connectionLost)
         self.librewired.notify("__Reconnected", self.reconnected)
+        self.librewired.notify("__UserListDone", self.userListReady)
+
+        formid = "%s-CHAT1" % (self.conID)
+        self.chats[1] = chatView.chatview(self, formid, 1)  # init public chat
 
         if not self.librewired.connect(self.host, self.port):
             self.fail = 1
         if not self.fail:
             if not self.librewired.login(self.librewired.nick, self.login, self.pasword, True):
                 self.fail = 2
-        if not self.fail:
-            formid = "%s-CHAT1" % (self.conID)
-            self.chats[1] = chatView.chatview(self, formid, 1)  # init public chat
+        if self.fail:
+            del self.chats[1]
 
-            for i in range(0, 30):  # slow servers may need some time to send us the userlist
-                if 1 in self.librewired.userorder:
-                    break
-                sleep(0.1)
-
-            self.chats[1].userlist.build(self.librewired.userlist, self.librewired.userorder)
+    def userListReady(self, msg):
+        chatid = msg[0]
+        if int(chatid) in self.chats:
+            self.chats[chatid].userlist.build(self.librewired.userlist, self.librewired.userorder)
 
     def closeForm(self, formid):
         for i in range(0, len(self.forms)):
