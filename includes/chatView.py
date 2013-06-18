@@ -2,6 +2,7 @@ import npyscreen
 import curses
 from includes import commandHandler, userList, autoCompleter
 from textwrap import wrap
+from threading import RLock
 
 
 class chatview(npyscreen.FormBaseNew):
@@ -9,6 +10,7 @@ class chatview(npyscreen.FormBaseNew):
         self.chat = chatid
         self.parent = parent
         self.formid = formid
+        self.lock = RLock()
         self.chattopic = 0
         self.librewired = self.parent.librewired
         self.validCommands = ['/nick', '/status', '/ping', '/icon', '/topic', '/me', '/clear']

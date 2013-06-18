@@ -185,11 +185,13 @@ class rewiredInstance():
 
     def connectionLost(self):
         for akey, achat in self.chats.items():
+            achat.userlist.users = []
             achat.appendChat(">>> lost connection to %s <<<" % self.host)
         return
 
     def reconnected(self):
         for akey, achat in self.chats.items():
+            achat.userlist.rebuildList(self.librewired.userlist, self.librewired.userorder)
             achat.appendChat(">>> reconnected to %s successfully <<<" % self.host)
         return
 
