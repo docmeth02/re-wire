@@ -1,5 +1,7 @@
 import npyscreen
 from os import path
+from sys import argv
+from curses import beep
 
 
 class commandhandler():
@@ -62,6 +64,13 @@ class commandhandler():
     def changeIcon(self, iconpath):
         if not iconpath:
             return 0
+        if not path.exists(iconpath):
+            homepath = path.dirname(argv[0])
+            if path.exists(path.join(homepath, iconpath)):
+                iconpath = path.join(homepath, iconpath)
+            else:
+                beep()
+                return 0
         if not self.librewired.loadIcon(iconpath):
             return 0
         return 1
