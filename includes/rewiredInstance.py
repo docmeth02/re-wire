@@ -83,6 +83,13 @@ class rewiredInstance():
     def gotChat(self, chat, action=False):
         chat = chat.msg
         nick = self.librewired.getNickByID(int(chat[1]))
+        if "data:image" in chat[2]:
+            if chat[2].count(chr(3)) == 2:
+                chat[2] = chat[2][:chat[2].find(chr(3))]
+            if chat[2].count(chr(128)):
+                chat[2] = chat[2].replace(chr(128), '')
+        if not len(chat[2]):
+            return
         if int(chat[0]) in self.chats and nick:  # 2 = data
             self.chats[int(chat[0])].chatreceived(nick, chat[2], action)
         return
