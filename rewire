@@ -4,6 +4,9 @@ from signal import signal, SIGINT, SIGTERM
 from time import sleep, time
 from logging import getLogger, DEBUG, StreamHandler
 from includes import newconnection, rewiredInstance
+from includes import rewireFunctions
+from os import path
+from sys import argv
 import weakref
 import npyscreen
 import sys
@@ -16,6 +19,8 @@ class reWire(npyscreen.NPSAppManaged):
         self.conID = 0
         self.servers = {}
         self.formIDs = []
+        self.homepath = path.dirname(argv[0])
+        self.config = rewireFunctions.load_config(self.homepath)
         self.registerForm("MAIN", newconnection.NewConnection(self))
 
     def shutdown(self):

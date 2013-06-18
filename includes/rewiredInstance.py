@@ -7,8 +7,9 @@ from os import path
 
 
 class rewiredInstance():
-    def __init__(self, parent, conID, host, port, login, password, autoreconnect):
+    def __init__(self, parent, conID, host, port, login, password, autoreconnect, profile):
         self.parent = parent
+        self.config = parent.config
         self.conID = conID
         self.host = host
         self.port = port
@@ -21,12 +22,19 @@ class rewiredInstance():
         self.shutdown = 0
         self.librewired = rewiredclient.client(self)
         self.homepath = path.dirname(argv[0])
-        if path.exists(path.join(self.homepath, "data/default.png")):
-            self.librewired.loadIcon(path.join(self.homepath, "data/default.png"))
-        self.librewired.nick = "re:wire"
+        icon = self.config.get(profile, 'icon')
+        if not icon:
+            if path.exists(path.join(self.homepath, "data/default.png")):
+                self.librewired.loadIcon(path.join(self.homepath, "data/default.png"))
+        else:
+            if not path.exists(icon):
+                icon = os.join(self.homepath, icon)
+            if path.exists(icon):
+                self.librewired.loadIcon(icon)
+        self.librewired.nick = self.config.get(profile, 'nick')
         self.librewired.appname = "re:wire"
         self.librewired.version = "WIP"
-        self.librewired.status = "Another re:wire client"
+        self.librewired.status = self.config.get(profile, 'status')
         self.librewired.autoreconnect = self.autoreconnect
         self.librewired.start()
         self.chats = {}
