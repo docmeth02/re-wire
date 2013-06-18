@@ -26,7 +26,7 @@ class chatview(npyscreen.FormMutt):
         self.name = "re:wire @%s: %s " % (self.parent.host, chat)
         self.title = self.add(npyscreen.FixedText, name="title", editable=0, rely=0, value=self.name)
         self.box = self.add(npyscreen.Pager, rely=1, relx=0, width=self.max_x - 18, height=self.max_y - 4,
-                            max_width=self.max_x - 17, max_height=self.max_y - 3, editable=False, color="CURSOR",
+                            max_width=self.max_x - 17, max_height=self.max_y - 3, editable=1, color="CURSOR",
                             widgets_inherit_color=True)
         self.userlist = userList.userlist(self, self.max_x - 17, 1, 16, self.max_y - 3)
 
