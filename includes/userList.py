@@ -39,6 +39,8 @@ class userlist():
     def rebuildList(self, userlist, order):
         with self.parent.lock:
             self.users = []
+            if not self.parent.chat in order:
+                return 0
             for key in order[self.parent.chat]:
                 auser = self.parent.librewired.getUserByID(key)
                 if not auser:
