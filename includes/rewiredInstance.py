@@ -36,7 +36,7 @@ class rewiredInstance():
                 self.librewired.loadIcon(path.join(self.homepath, "data/default.png"))
         else:
             if not path.exists(icon):
-                icon = os.join(self.homepath, icon)
+                icon = path.join(self.homepath, icon)
             if path.exists(icon):
                 self.librewired.loadIcon(icon)
         self.librewired.nick = self.config.get(profile, 'nick')
