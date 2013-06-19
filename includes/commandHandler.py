@@ -34,6 +34,27 @@ class commandhandler():
         elif command == '/clear':
             self.parent.box.values = []
             self.parent.box.update()
+        elif command == '/afk':
+            if ' [afk]' in self.librewired.status\
+                    or ' [zZz]' in self.librewired.status:
+                return 1
+            self.librewired.status = self.librewired.status + ' [afk]'
+            self.librewired.changeStatus(self.librewired.status)
+        elif command == '/away':
+            if ' [afk]' in self.librewired.status\
+                    or ' [zZz]' in self.librewired.status:
+                return 1
+            self.librewired.status = self.librewired.status + ' [zZz]'
+            self.librewired.changeStatus(self.librewired.status)
+        elif command == '/back':
+            status = 0
+            if ' [afk]' in self.librewired.status:
+                status = self.librewired.status[:self.librewired.status.find(' [afk]')]
+            elif ' [zZz]' in self.librewired.status:
+                status = self.librewired.status[:self.librewired.status.find(' [zZz]')]
+            if status:
+                self.librewired.status = status
+                self.librewired.changeStatus(self.librewired.status)
         return 1
 
     def changeNick(self, newNick):
