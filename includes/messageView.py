@@ -12,23 +12,27 @@ class messageview():
         self.msguserids = self.parent.msguserids
         self.nicks = self.parent.msgnicks
         self.msgs = self.parent.msgs
+        self.max_x = self.parent.max_x
+        self.max_y = self.parent.max_y
         self.displayUid = 0
         self.displayMsg = 0
 
     def build(self):
-        self.popup = npyscreen.FormBaseNew(name="Messages", framed=True, relx=0, rely=0)
+        self.popup = npyscreen.FormBaseNew(name="Messages", framed=True, relx=0, rely=0, lines=self.max_y - 3,
+                                           columns=self.max_x - 3)
+        self.popup.formid = self.formid
         self.popup.show_atx = 1
         self.popup.show_aty = 1
-
-        self.max_y = self.popup.max_y
-        self.max_x = self.popup.max_x
+        self.popup.add_handlers({curses.KEY_F3: self.close})
+        self.popup.add_handlers({curses.KEY_F1: self.parent.prevForm})
+        self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
 
         self.select = self.popup.add_widget(npyscreen.MultiLineAction, relx=2, rely=2,
-                                            max_height=self.max_y - 7, height=self.max_y-7, values=[],
+                                            max_height=self.max_y - 8, height=self.max_y-8, values=[],
                                             width=13, max_width=13, color="DEFAULT", widgets_inherit_color=True)
 
         self.box = self.popup.add_widget(npyscreen.Pager, values="", relx=15, rely=4, hidden=1,
-                                         width=self.max_x - 19, max_width=self.max_x - 19, editable=0,
+                                         width=self.max_x - 22, max_width=self.max_x - 22, editable=0,
                                          color="CURSOR", widgets_inherit_color=True, autowrap=True)
         self.select.actionSelected = self.nickSelected
         self.select.actionHighlighted = self.nickSelected
@@ -40,17 +44,20 @@ class messageview():
         self.msgnav = self.popup.add_widget(npyscreen.FixedText, name="msgnav", editable=0, relx=24, rely=2,
                                             value="", color="NO_EDIT", hidden=1)
 
-        self.reply = self.popup.add(npyscreen.MiniButton, relx=self.max_x-20, rely=2, name="Reply", hidden=1)
+        self.reply = self.popup.add(npyscreen.MiniButton, relx=self.max_x-23, rely=2, name="Reply", hidden=1)
         self.reply.add_handlers({curses.ascii.NL: self.replyPressed})
 
-        self.clear = self.popup.add(npyscreen.MiniButton, relx=self.max_x-12, rely=2, name="Clear", hidden=1)
+        self.clear = self.popup.add(npyscreen.MiniButton, relx=self.max_x-15, rely=2, name="Clear", hidden=1)
         self.clear.add_handlers({curses.ascii.NL: self.clearPressed})
         self.msgheader = self.popup.add_widget(npyscreen.FixedText, name="msgheader", editable=0, relx=15, rely=3,
                                                value="", color="CAUTION", hidden=1)
-        self.cancel = self.popup.add(npyscreen.ButtonPress, relx=2, rely=self.max_y-3, name="Close")
+        self.cancel = self.popup.add(npyscreen.ButtonPress, relx=2, rely=self.max_y-6, name="Close")
 
         self.cancel.whenPressed = self.close
         self.updateSidebar()
+        if not len(self.msgs):
+            curses.beep()
+            self.popup.editw = 8
         return self.popup
 
     def updateSidebar(self):

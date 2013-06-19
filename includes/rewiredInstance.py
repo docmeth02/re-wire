@@ -66,6 +66,9 @@ class rewiredInstance():
         formid = "%s-CHAT1" % (self.conID)
         self.chats[1] = chatView.chatview(self, formid, 1)  # init public chat
 
+        self.max_x = self.chats[1].max_x
+        self.max_y = self.chats[1].max_y
+
         if not self.librewired.connect(self.host, self.port):
             self.fail = 1
         if not self.fail:
