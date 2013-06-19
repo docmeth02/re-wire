@@ -13,14 +13,15 @@ class chatview(npyscreen.FormMutt):
         self.lock = RLock()
         self.chattopic = 0
         self.librewired = self.parent.librewired
+        self.defaultHandlers = {curses.KEY_F1: self.parent.prevForm,
+                                curses.KEY_F2: self.parent.nextForm,
+                                curses.KEY_F3: self.parent.openMessageView}
         self.validCommands = ['/nick', '/status', '/ping', '/icon', '/topic', '/me', '/clear']
         self.commandHandler = commandHandler.commandhandler(self, self.librewired)
         super(chatview, self).__init__(**kwargs)
         self.add_handlers({"^D": self.closeForm})
         self.add_handlers({"^T": self.parent.nextForm})
-        self.add_handlers({curses.KEY_F1: self.parent.nextForm})
-        self.add_handlers({curses.KEY_F2: self.parent.nextForm})  # make this previous form
-        self.add_handlers({curses.KEY_F3: self.parent.openMessageView})
+        self.add_handlers(self.defaultHandlers)
 
     def create(self):
         chat = "Public Chat"
@@ -42,9 +43,10 @@ class chatview(npyscreen.FormMutt):
                                   begin_entry_at=1, max_width=self.max_x - 17, name="%s-%s" % (self.formid, self.chat))
 
         self.chatinput.hookParent(self)
-        self.chatinput.handlers[curses.ascii.NL] = self.chatinputenter
-        self.chatinput.handlers[curses.KEY_BACKSPACE] = self.chatinput.backspace
+        self.chatinput.add_handlers({curses.ascii.NL: self.chatinputenter})
+        self.chatinput.add_handlers({curses.KEY_BACKSPACE: self.chatinput.backspace})
         self.chatinput.add_handlers({curses.KEY_F3: self.parent.openMessageView})
+        self.chatinput.add_handlers(self.defaultHandlers)
         self.editw = 4
 
     def deferred_update(self, instance, forced):

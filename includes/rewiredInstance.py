@@ -104,6 +104,10 @@ class rewiredInstance():
         self.parent.switchNextForm()
         return 1
 
+    def prevForm(self, *args):
+        self.parent.switchPrevForm()
+        return 1
+
     def switchForm(self, formid):
         self.parent.switchForm(formid)
 

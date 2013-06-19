@@ -13,6 +13,8 @@ class NewConnection(npyscreen.FormBaseNew):
         self.add_handlers({"^D": self.exit_application})
         self.add_handlers({"^Q": self.exit_application})
         self.add_handlers({"^T": self.parent.switchNextForm})
+        self.add_handlers({curses.KEY_F1: self.parent.switchPrevForm})
+        self.add_handlers({curses.KEY_F2: self.parent.switchNextForm})
 
     def create(self):
         start_x = int(round((self.max_x - 38) / 2))
