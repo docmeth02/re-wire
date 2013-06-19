@@ -102,6 +102,7 @@ class userlist():
                             if int(user.admin):
                                 acctype = 2
                         self.users[i].nick = str(user.nick)
+                        self.users[i].status = str(user.status)
                         self.users[i].isIdle = int(user.idle)
                         self.users[i].acctype = acctype
                         self.users[i].isupdated = 1
