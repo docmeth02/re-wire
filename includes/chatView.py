@@ -18,6 +18,9 @@ class chatview(npyscreen.FormMutt):
         super(chatview, self).__init__(**kwargs)
         self.add_handlers({"^D": self.closeForm})
         self.add_handlers({"^T": self.parent.nextForm})
+        self.add_handlers({curses.KEY_F1: self.parent.nextForm})
+        self.add_handlers({curses.KEY_F2: self.parent.nextForm})  # make this previous form
+        self.add_handlers({curses.KEY_F3: self.parent.openMessageView})
 
     def create(self):
         chat = "Public Chat"
@@ -41,6 +44,8 @@ class chatview(npyscreen.FormMutt):
         self.chatinput.hookParent(self)
         self.chatinput.handlers[curses.ascii.NL] = self.chatinputenter
         self.chatinput.handlers[curses.KEY_BACKSPACE] = self.chatinput.backspace
+        self.chatinput.add_handlers({curses.KEY_F3: self.parent.openMessageView})
+        self.editw = 4
 
     def deferred_update(self, instance, forced):
         if self.parent.getActiveForm() == self.formid:  # we're active right now

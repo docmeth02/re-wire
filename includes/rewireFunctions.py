@@ -39,3 +39,11 @@ def load_config(fullpath, filename=False):
     config.set("DEFAULT", 'icon', 'data/default.png')
     config.set("DEFAULT", 'connectonstart', '0')
     return config
+
+
+def on_ok():
+    return 1
+
+
+def on_cancel():
+    return 0

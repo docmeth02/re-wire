@@ -1,10 +1,11 @@
 import npyscreen
 import curses
 from librewired import rewiredclient
-from includes import chatView
+from includes import chatView, messageView
+rewireMsg = messageView.rewireMsg
 from sys import argv
 from os import path
-from time import sleep
+from time import sleep, time
 
 
 class rewiredInstance():
@@ -23,6 +24,12 @@ class rewiredInstance():
         self.shutdown = 0
         self.librewired = rewiredclient.client(self)
         self.homepath = path.dirname(argv[0])
+
+        self.msgview = 0
+        self.msguserids = []
+        self.msgnicks = {}
+        self.msgs = {}
+
         icon = self.config.get(profile, 'icon')
         if not icon:
             if path.exists(path.join(self.homepath, "data/default.png")):
@@ -54,6 +61,7 @@ class rewiredInstance():
         self.librewired.notify("__ConnectionLost", self.connectionLost)
         self.librewired.notify("__Reconnected", self.reconnected)
         self.librewired.notify("__UserListDone", self.userListReady)
+        self.librewired.notify("__PrivateMessage", self.gotPrivateMessage)
 
         formid = "%s-CHAT1" % (self.conID)
         self.chats[1] = chatView.chatview(self, formid, 1)  # init public chat
@@ -96,6 +104,9 @@ class rewiredInstance():
         self.parent.switchNextForm()
         return 1
 
+    def switchForm(self, formid):
+        self.parent.switchForm(formid)
+
     def gotChat(self, chat, action=False):
         chat = chat.msg
         nick = self.librewired.getNickByID(int(chat[1]))
@@ -120,6 +131,32 @@ class rewiredInstance():
                 pass
         self.librewired.sendChat(int(chatid), chat)
         return
+
+    def gotPrivateMessage(self, userid, message):
+        userid = int(userid)
+        user = self.librewired.getUserByID(userid)
+        if not user:
+            return 0
+        if not userid in self.msguserids:
+            self.msguserids.append(userid)
+            self.msgnicks[userid] = user.nick
+        if not userid in self.msgs:
+            self.msgs[userid] = []
+        try:
+            msg = rewireMsg(userid, user.nick, time(), message)
+            self.msgs[userid].append(msg)
+        except:
+            return 0
+        if self.msgview:
+            self.msgview.updateSidebar()
+        curses.beep()
+        return 1
+
+    def sendPrivateMessage(self, userid, message):
+        userid = int(userid)
+        if not self.librewired.sendPrivateMsg(userid, message):
+            return 0
+        return 1
 
     def statusChange(self, msg):
         userid = int(msg)
@@ -177,6 +214,16 @@ class rewiredInstance():
         self.chats[chatid].userlist.build(self.librewired.userlist, self.librewired.userorder)
         self.parent.switchForm(form)
         self.chats[chatid].display()
+        return
+
+    def openMessageView(self, *args, **kwargs):
+        formid = "MESSAGES-%s" % self.conID
+        if self.msgview:
+            self.switchForm(formid)
+            return
+        self.msgview = messageView.messageview(self, formid)
+        self.parent.registerForm(formid, self.msgview.build())
+        self.parent.switchForm(formid)
         return
 
     def clientLeft(self, msg, client):

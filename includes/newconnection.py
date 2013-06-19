@@ -37,6 +37,7 @@ class NewConnection(npyscreen.FormBaseNew):
 
         self.chooseBookmark = self.add(npyscreen.ButtonPress, relx=start_x+8, rely=start_y+6, name="Open Bookmark")
         self.chooseBookmark.whenPressed = self.openBookmarks
+        self.editw = 4  # focus connect button
         self.applyBookmark('DEFAULT')  # make sure we display something even when the config file is messed up
         if self.config.has_section('defaults'):
             self.applyBookmark('defaults')
