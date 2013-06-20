@@ -30,6 +30,10 @@ class rewiredInstance():
         self.msgnicks = {}
         self.msgs = {}
 
+        self.notifications = [rewireNotification("MSG", '%s unread messages from docmeth02', 1, 11),
+                              rewireNotification("BOO", 'This is another notification', 6, 111)]
+        self.notifications = []
+
         icon = self.config.get(profile, 'icon')
         if not icon:
             if path.exists(path.join(self.homepath, "data/default.png")):
@@ -97,11 +101,10 @@ class rewiredInstance():
                 if type(aform) is not str:
                     self.parent.removeForm(aform.formid)
             self.parent.removeConnection(self.conID)
-            self.parent.setNextForm("MAIN")
-        else:
-            self.parent.setNextForm("%s-CHAT1" % (self.conID))
+            self.parent.switchForm("MAIN")
+            return 1
         self.parent.removeForm(formid)
-        self.parent.switchFormNow()
+        self.parent.switchForm("%s-CHAT1" % self.conID)  # back to public chat
 
     def nextForm(self, *args):
         self.parent.switchNextForm()
@@ -157,6 +160,8 @@ class rewiredInstance():
         if self.msgview:
             self.msgview.updateSidebar()
         curses.beep()
+        self.addNotification('MSG', '%s unread messages from '
+                             + str(user.nick), 1, userid, color='NO_EDIT')
         return 1
 
     def sendPrivateMessage(self, userid, message):
@@ -190,7 +195,6 @@ class rewiredInstance():
             return 0
         if chatid in self.chats:
             if leave:
-                curses.beep()
                 self.chats[chatid].userlist.removeUser(userid)
                 self.chats[chatid].appendChat(">>> %s left <<<" % client['nick'])
             else:
@@ -207,7 +211,7 @@ class rewiredInstance():
 
         self.chats[chatid] = chatView.chatInvite(self, form, chatid, user)
         self.parent.servers[self.conID].forms.append(form)
-        self.parent.registerForm(form, self.parent.servers[self.conID].chats[chatid])
+        self.parent.registerForm(form, self.chats[chatid])
         self.parent.switchForm(form)
         self.chats[chatid].display()
         return
@@ -217,7 +221,7 @@ class rewiredInstance():
 
         self.chats[chatid] = chatView.chatview(self, form, chatid)
         self.parent.servers[self.conID].forms.append(form)
-        self.parent.registerForm(form, self.parent.servers[self.conID].chats[chatid])
+        self.parent.registerForm(form, self.chats[chatid])
         self.chats[chatid].userlist.build(self.librewired.userlist, self.librewired.userorder)
         self.parent.switchForm(form)
         self.chats[chatid].display()
@@ -246,6 +250,7 @@ class rewiredInstance():
         try:
             form = self.parent.returnActiveForm()
         except AttributeError:
+            curses.beep()
             return 0
         return form
 
@@ -265,7 +270,6 @@ class rewiredInstance():
         killerid, victimid, text = params
         victim = self.librewired.getUserByID(int(victimid))
         if int(victimid) == int(self.librewired.id):
-            curses.beep()
             with self.librewired.lock:
                 self.librewired.autoreconnect = 0
         killer = self.librewired.getUserByID(int(killerid))
@@ -279,5 +283,32 @@ class rewiredInstance():
         return
 
     def clientBanned(self, params):
-        curses.beep()
         self.clientKicked(params, True)
+
+    def addNotification(self, nftype, label, count, ident, color='DEFAULT'):
+        for i in range(len(self.notifications)):
+            if self.notifications[i].nftype == nftype and self.notifications[i].ident == ident:
+                    self.notifications[i].label = label
+                    self.notifications[i].count = self.notifications[i].count + count
+                    return 1
+        self.notifications.append(rewireNotification(nftype, label, count, ident, color))
+        return 1
+
+    def removeNotification(self, nftype, removecount, ident):
+        for i in range(0, len(self.notifications)):
+            if self.notifications[i].nftype == nftype and self.notifications[i].ident == ident:
+                self.notifications[i].count = self.notifications[i].count - removecount
+                if not self.notifications[i].count:
+                    self.notifications.pop(i)
+                return 1
+        return 0
+
+
+class rewireNotification():
+    def __init__(self, nftype, label, count, ident, color='DEFAULT'):
+        self.nftype = nftype
+        self.label = label
+        self.count = count
+        self.ident = ident
+        self.date = time()
+        self.color = color

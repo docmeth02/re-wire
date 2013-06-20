@@ -12,6 +12,7 @@ class chatview(npyscreen.FormMutt):
         self.formid = formid
         self.lock = RLock()
         self.chattopic = 0
+        self.notification = 0
         self.librewired = self.parent.librewired
         self.defaultHandlers = {curses.KEY_F1: self.parent.prevForm,
                                 curses.KEY_F2: self.parent.nextForm,
@@ -104,10 +105,12 @@ class chatview(npyscreen.FormMutt):
 
     def updateTopic(self, topic):
         self.topic.value = topic
+        self.chattopic = topic
         if not self.topic.value:
             self.topic.hidden = 1
             self.topic.label_widget.hidden = 1
         elif self.topic.hidden or self.topic.label_widget.hidden:
+            self.topic.entry_widget.color = 'DEFAULT'
             self.topic.hidden = 0
             self.topic.label_widget.hidden = 0
         self.deferred_update(self.topic, True)
@@ -120,11 +123,43 @@ class chatview(npyscreen.FormMutt):
         self.editing = False
         self.parent.closeForm(self.formid)
 
+    def onTimer(self):
+        if len(self.parent.notifications):
+            if self.notification > len(self.parent.notifications) - 1:
+                self.notification = -1
+
+            if not self.chattopic and self.notification < 0:
+                self.notification = 0
+
+            if self.notification == -1:
+                self.updateTopic(self.chattopic)
+                self.notification = 0
+                return
+
+            notification = self.parent.notifications[self.notification]
+            label = notification.label
+            if notification.count and "%s" in notification.label:
+                label = notification.label % notification.count
+            self.topic.value = label
+            self.topic.hidden = 0
+            self.topic.entry_widget.color = notification.color
+            self.deferred_update(self.topic, True)
+            self.topic.label_widget.hidden = 1
+            self.deferred_update(self.topic.label_widget, True)
+            self.notification += 1
+            return
+
+        else:
+            if self.chattopic and self.notification != -1:
+                self.updateTopic(self.chattopic)
+                self.notification = -1
+        return
+
 
 class chatInvite(npyscreen.FormBaseNew):
     def __init__(self, parent, formid, chatid, user, **kwargs):
         self.chat = chatid
-        self.parent = parent
+        self.chatparent = parent
         self.formid = formid
         self.user = user
         super(chatInvite, self).__init__(relx=5, rely=5, lines=12, columns=60, **kwargs)
@@ -132,33 +167,34 @@ class chatInvite(npyscreen.FormBaseNew):
         self.show_aty = 2
 
     def create(self):
-        self.name = "re:wire @%s" % (self.parent.host)
-        self.add_handlers({"^T": self.parent.nextForm})
-        self.add_handlers({"^D": self.closeForm})
-        self.label = self.add(npyscreen.FixedText, name="label", editable=0,
-                              value="User %s has invited you to a private chat" % self.user.nick)
-        self.join = self.add(npyscreen.ButtonPress, name="Join", relx=12, rely=5)
+        self.name = "re:wire @%s" % (self.chatparent.host)
+        self.add_handlers({curses.KEY_F3: self.closeForm})
+        self.add_handlers({curses.KEY_F1: self.chatparent.prevForm})
+        self.add_handlers({curses.KEY_F2: self.chatparent.nextForm})
+        self.label = self.add_widget(npyscreen.FixedText, name="label", editable=0,
+                                     value="User %s has invited you to a private chat" % self.user.nick)
+        self.join = self.add_widget(npyscreen.ButtonPress, name="Join", relx=12, rely=5)
         self.join.whenPressed = self.doJoin
-        self.ignore = self.add(npyscreen.ButtonPress, name="Ignore", relx=21, rely=5)
+        self.ignore = self.add_widget(npyscreen.ButtonPress, name="Ignore", relx=21, rely=5)
         self.ignore.whenPressed = self.doIgnore
-        self.decline = self.add(npyscreen.ButtonPress, name="Decline", relx=32, rely=5)
+        self.decline = self.add_widget(npyscreen.ButtonPress, name="Decline", relx=32, rely=5)
         self.decline.whenPressed = self.doDecline
+        self.editw = 1
 
-    def closeForm(self, *args):
+    def closeForm(self, *args, **kwargs):
         self.editable = False
         self.editing = False
-        self.parent.closeForm(self.formid)
+        self.chatparent.closeForm(self.formid)
 
     def doJoin(self, *args, **kwargs):
-        if not self.parent.librewired.joinPrivateChat(self.chat):
-            curses.beep()
+        if not self.chatparent.librewired.joinPrivateChat(self.chat):
             return 0
-        self.parent.closeForm(self.formid)
-        self.parent.privateChatJoin(self.chat)
+        self.chatparent.closeForm(self.formid)
+        self.chatparent.privateChatJoin(self.chat)
 
     def doIgnore(self, *args, **kwargs):
         self.closeForm()
 
     def doDecline(self, *args, **kwargs):
-        self.parent.librewired.declinePrivateChat(self.chat)
+        self.chatparent.librewired.declinePrivateChat(self.chat)
         self.closeForm()

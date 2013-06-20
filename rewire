@@ -27,6 +27,7 @@ class reWire(npyscreen.NPSAppManaged):
         self.timer = Timer(5, self.timerfired)
         self.timer.start()
         self.chooser.runAutoconnect()
+        self.activeform = 0
 
     def shutdown(self):
         for akey, aserver in self.servers.items():
@@ -61,7 +62,7 @@ class reWire(npyscreen.NPSAppManaged):
             return 0
         key = 0
         for i in range(0, len(self.formIDs)):
-            if self.formIDs[i] == str(self._LAST_NEXT_ACTIVE_FORM.formid):
+            if self.formIDs[i] == self.activeform:
                 key = i - 1
         if key < 0:
             key = len(self.formIDs) - 1
@@ -72,14 +73,20 @@ class reWire(npyscreen.NPSAppManaged):
             return 0
         key = 0
         for i in range(0, len(self.formIDs)):
-            if self.formIDs[i] == str(self._LAST_NEXT_ACTIVE_FORM.formid):
+            if self.formIDs[i] == self.activeform:
                 key = i + 1
         if key >= len(self.formIDs):
             key = 0
         self.switchForm(self.formIDs[key])
 
+    def switchForm(self, fmid):
+        self._THISFORM.editing = False
+        self.setNextForm(fmid)
+        self.switchFormNow()
+        self.activeform = fmid
+
     def returnActiveForm(self):
-        return str(self._LAST_NEXT_ACTIVE_FORM.formid)
+        return self.activeform
 
     def timerfired(self):
         for aforid, aform in self._Forms.items():

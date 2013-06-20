@@ -18,7 +18,8 @@ class messageview():
         self.displayMsg = 0
 
     def build(self):
-        self.popup = npyscreen.FormBaseNew(name="Messages", framed=True, relx=0, rely=0, lines=self.max_y - 3,
+        self.popup = npyscreen.FormBaseNew(name="Messages - %s" % self.parent.host,
+                                           framed=True, relx=0, rely=0, lines=self.max_y - 3,
                                            columns=self.max_x - 3)
         self.popup.formid = self.formid
         self.popup.show_atx = 1
@@ -56,7 +57,6 @@ class messageview():
         self.cancel.whenPressed = self.close
         self.updateSidebar()
         if not len(self.msgs):
-            curses.beep()
             self.popup.editw = 8
         return self.popup
 
@@ -126,6 +126,7 @@ class messageview():
         if not msg.read:
             read = "New Message"
             msg.read = time()
+            self.parent.removeNotification('MSG', 1, userid)
         else:
             read = datetime.fromtimestamp(msg.read)
             read = read.strftime("%Y-%m-%d %H:%M")
