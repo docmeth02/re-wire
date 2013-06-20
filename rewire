@@ -5,6 +5,7 @@ from time import sleep, time
 from logging import getLogger, DEBUG, StreamHandler
 from includes import newconnection, rewiredInstance
 from includes import rewireFunctions
+from threading import Timer
 from os import path
 from sys import argv
 import weakref
@@ -23,12 +24,18 @@ class reWire(npyscreen.NPSAppManaged):
         self.config = rewireFunctions.load_config(self.homepath)
         self.chooser = newconnection.NewConnection(self)
         self.registerForm("MAIN", self.chooser)
+        self.timer = Timer(5, self.timerfired)
+        self.timer.start()
         self.chooser.runAutoconnect()
 
     def shutdown(self):
         for akey, aserver in self.servers.items():
             for aform in aserver.forms:
                 aserver.closeForm(aform)
+        if self.timer.is_alive():
+            self.timer.cancel()
+            if not self.timer.join(5):
+                print "Failed to stop timer thread"
         return 1
 
     def removeConnection(self, conID):
@@ -73,6 +80,16 @@ class reWire(npyscreen.NPSAppManaged):
 
     def returnActiveForm(self):
         return str(self._LAST_NEXT_ACTIVE_FORM.formid)
+
+    def timerfired(self):
+        for aforid, aform in self._Forms.items():
+            if hasattr(aform, "onTimer"):
+                try:
+                    aform.onTimer()
+                except:
+                    pass
+        self.timer = Timer(5, self.timerfired)
+        self.timer.start()
 
 app = reWire()
 app.run()
