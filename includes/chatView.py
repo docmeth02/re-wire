@@ -153,6 +153,13 @@ class chatview(npyscreen.FormMutt):
             if self.chattopic and self.notification != -1:
                 self.updateTopic(self.chattopic)
                 self.notification = -1
+                return
+            elif not self.chattopic:
+                if not self.topic.hidden or not self.topic.label_widget.hidden:
+                    self.topic.hidden = 1
+                    self.topic.label_widget.hidden = 1
+                    self.deferred_update(self.topic)
+                    self.deferred_update(self, topic.label_widget)
         return
 
 
