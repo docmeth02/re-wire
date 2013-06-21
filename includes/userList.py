@@ -55,6 +55,11 @@ class userlist():
             self.updateList()
             return 1
 
+    def refreshView(self):
+        for i in range(0, self.maxheight):
+            self.widgets[i].display()
+        return
+
     def updateList(self):
         with self.parent.lock:
             colors = ['CURSOR', 'NO_EDIT', 'DANGER']

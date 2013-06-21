@@ -22,23 +22,21 @@ class NewConnection(npyscreen.FormBaseNew):
         self.name = "re:wire new connection"
         self.server = self.add(npyscreen.TitleText, relx=start_x, rely=start_y,
                                name="Server:      ", value="", field_width=20, begin_entry_at=16)
-        self.server.handlers[curses.KEY_BACKSPACE] = self.server.entry_widget.h_delete_left
         self.user = self.add(npyscreen.TitleText, relx=start_x, rely=start_y+1,
                              name="Username:", value="", field_width=20, begin_entry_at=16)
-        self.user.handlers[curses.KEY_BACKSPACE] = self.user.entry_widget.h_delete_left
         self.password = self.add(npyscreen.TitlePassword, relx=start_x, rely=start_y+2,
                                  name="Password: ", value="", field_width=20, begin_entry_at=16)
-        self.password.handlers[curses.KEY_BACKSPACE] = self.password.entry_widget.h_delete_left
         self.reconnect = self.add(npyscreen.Checkbox, relx=start_x, rely=start_y+3,
                                   name="Reconnect automatically")
-        self.connect = self.add(npyscreen.MiniButton, relx=start_x+6, rely=start_y+4,
+        self.connect = self.add(npyscreen.ButtonPress, relx=start_x+6, rely=start_y+4,
                                 name="Connect")
-        self.quit = self.add(npyscreen.MiniButton, relx=start_x+16, rely=start_y+4, name="Quit")
-        self.quit.add_handlers({curses.ascii.NL: self.exit_application})
-        self.connect.add_handlers({curses.ascii.NL: self.doConnect})
-
+        self.quit = self.add(npyscreen.ButtonPress, relx=start_x+16, rely=start_y+4, name="Quit")
+        self.quit.handle_mouse_event = self.handle_mouse_event
+        self.quit.whenPressed = self.exit_application
+        self.connect.whenPressed = self.doConnect
         self.chooseBookmark = self.add(npyscreen.ButtonPress, relx=start_x+8, rely=start_y+6, name="Open Bookmark")
         self.chooseBookmark.whenPressed = self.openBookmarks
+
         self.editw = 4  # focus connect button
         self.applyBookmark('DEFAULT')  # make sure we display something even when the config file is messed up
         if self.config.has_section('defaults'):
@@ -51,6 +49,10 @@ class NewConnection(npyscreen.FormBaseNew):
         self.parentApp.setNextForm(None)
         self.editing = False
         raise SystemExit
+
+    def handle_mouse_event(self, mouse_event):
+        mouse_id, rel_x, rel_y, z, bstate = self.quit.interpret_mouse_event(mouse_event)
+        npyscreen.notify_confirm(str(self.quit.interpret_mouse_event(mouse_event)))
 
     def backspace(self, *args):
         curses.beep()

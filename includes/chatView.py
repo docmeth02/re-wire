@@ -13,6 +13,7 @@ class chatview(npyscreen.FormMutt):
         self.lock = RLock()
         self.chattopic = 0
         self.notification = 0
+        self.userlist = 0
         self.librewired = self.parent.librewired
         self.defaultHandlers = {curses.KEY_F1: self.parent.prevForm,
                                 curses.KEY_F2: self.parent.nextForm,
@@ -23,6 +24,10 @@ class chatview(npyscreen.FormMutt):
         self.add_handlers({"^D": self.closeForm})
         self.add_handlers({"^T": self.parent.nextForm})
         self.add_handlers(self.defaultHandlers)
+
+    def beforeEditing(self):
+        if self.userlist:  # redraw userlist on chatview activation
+            self.userlist.refreshView()
 
     def create(self):
         chat = "Public Chat"
