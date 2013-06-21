@@ -173,6 +173,12 @@ class chatview(npyscreen.FormMutt):
     def startPrivateChat(self, userid):
         return self.parent.startPrivateChat(userid)
 
+    def kickUser(self, id, msg=""):
+        return self.parent.kickUser(id, msg)
+
+    def banUser(self, id, msg=""):
+        return self.parent.banUser(id, msg)
+
 
 class chatInvite(npyscreen.FormBaseNew):
     def __init__(self, parent, formid, chatid, user, **kwargs):

@@ -159,15 +159,36 @@ class userlist():
             value = options[selector.value]
             #npyscreen.notify_confirm(str(value))
             if 'Send Message' in value:
-                message = rewireFunctions.composeMessage(self, userid)
+                message = rewireFunctions.composeMessage(userid)
                 if message:
                     if not self.parent.sendPrivateMessage(int(userid), message):
-                        pass  # show error here
-                return
+                        return 0
+                return 1
             if 'Start Private Chat' in value:
                 if not self.parent.startPrivateChat(userid):
                     return 0
-                return
+                return 1
+            if "Kick" in value and self.parent.librewired.privileges['kickUsers']:
+                kick = rewireFunctions.textDialog("Kick user %s" % user.nick,
+                                                  inputlabel="Enter message to show (optional):", oklabel="Kick")
+                if kick:
+                    if type(kick) is str:
+                        msg = kick
+                    else:
+                        msg = ""
+                    if not self.parent.kickUser(userid, msg):
+                        return 0
+            if "Ban" in value and self.parent.librewired.privileges['banUsers']:
+                ban = rewireFunctions.textDialog("Ban user %s" % user.nick,
+                                                 inputlabel="Enter message to show (optional):", oklabel="Ban")
+                if ban:
+                    if type(ban) is str:
+                        msg = ban
+                    else:
+                        msg = ""
+                    if not self.parent.banUser(userid, msg):
+                        return 0
+                    return 1
         return
 
     def checkStatusChanged(self, userid, newstatus):

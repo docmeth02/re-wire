@@ -50,7 +50,7 @@ def on_cancel():
     return 0
 
 
-def composeMessage(self, userid):
+def composeMessage(userid):
     reply = npyscreen.ActionPopup(name="Compose Message")
     reply.OK_BUTTON_TEXT = "Send"
     reply.on_ok = on_ok
@@ -61,3 +61,16 @@ def composeMessage(self, userid):
     if action and text.value:
         return text.value
     return 0
+
+
+def textDialog(title, inputlabel="Enter text:", oklabel="OK"):
+    form = npyscreen.ActionPopup(name=title)
+    form.OK_BUTTON_TEXT = oklabel
+    form.on_ok = on_ok
+    form.on_cancel = on_cancel
+    label = form.add_widget(npyscreen.FixedText, value=inputlabel, editable=0, rely=1)
+    text = form.add_widget(npyscreen.MultiLineEdit, value="", begin_entry_at=8, rely=2)
+    action = form.edit()
+    if action and text.value:
+        return text.value
+    return action

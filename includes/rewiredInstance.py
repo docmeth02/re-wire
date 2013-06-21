@@ -321,6 +321,12 @@ class rewiredInstance():
                 return 1
         return 0
 
+    def kickUser(self, id, msg=""):
+        return self.librewired.kickUser(id, msg)
+
+    def banUser(self, id, msg=""):
+        return self.librewired.banUser(id, msg)
+
 
 class rewireNotification():
     def __init__(self, nftype, label, count, ident, color='DEFAULT'):

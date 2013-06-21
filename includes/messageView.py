@@ -188,7 +188,7 @@ class messageview():
             self.displayMsgs(self.nicks[self.displayUid])
 
     def replyPressed(self, *args, **kwargs):
-        message = rewireFunctions.composeMessage(self, self.displayUid)
+        message = rewireFunctions.composeMessage(self.displayUid)
         if message:
             if not self.parent.sendPrivateMessage(self.displayUid, message):
                 pass  # show error here
