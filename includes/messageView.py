@@ -188,15 +188,9 @@ class messageview():
             self.displayMsgs(self.nicks[self.displayUid])
 
     def replyPressed(self, *args, **kwargs):
-        reply = npyscreen.ActionPopup(name="Compose Message")
-        reply.OK_BUTTON_TEXT = "Send"
-        reply.on_ok = rewireFunctions.on_ok
-        reply.on_cancel = rewireFunctions.on_cancel
-        label = reply.add_widget(npyscreen.FixedText, value="Message text:", editable=0, rely=1)
-        text = reply.add_widget(npyscreen.MultiLineEdit, name="Text:", value="", begin_entry_at=8, rely=2)
-        action = reply.edit()
-        if action and text.value:
-            if not self.parent.sendPrivateMessage(self.displayUid, str(text.value)):
+        message = rewireFunctions.composeMessage(self, self.displayUid)
+        if message:
+            if not self.parent.sendPrivateMessage(self.displayUid, message):
                 pass  # show error here
         return
 

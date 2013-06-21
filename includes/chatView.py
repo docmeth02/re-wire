@@ -167,6 +167,12 @@ class chatview(npyscreen.FormMutt):
                     self.deferred_update(self, topic.label_widget)
         return
 
+    def sendPrivateMessage(self, userid, message):
+        return self.parent.sendPrivateMessage(userid, message)
+
+    def startPrivateChat(self, userid):
+        return self.parent.startPrivateChat(userid)
+
 
 class chatInvite(npyscreen.FormBaseNew):
     def __init__(self, parent, formid, chatid, user, **kwargs):

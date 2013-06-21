@@ -62,6 +62,7 @@ class rewiredInstance():
         self.librewired.notify("__ClientStatusChange", self.statusChange)
         self.librewired.notify("__ChatTopic", self.gotChatTopic)
         self.librewired.notify("__PrivateChatInvite", self.privateChatInvite)
+        self.librewired.notify("__PrivateChatDecline", self.privateChatDecline)
         self.librewired.notify("__ConnectionLost", self.connectionLost)
         self.librewired.notify("__Reconnected", self.reconnected)
         self.librewired.notify("__UserListDone", self.userListReady)
@@ -215,6 +216,23 @@ class rewiredInstance():
         self.parent.switchForm(form)
         self.chats[chatid].display()
         return
+
+    def privateChatDecline(self, chatid, userid):
+        user = self.librewired.getUserByID(int(userid))
+        if not user:
+            return 0
+        if int(chatid) in self.chats:
+            self.chats[int(chatid)].appendChat(">>> %s has declined invitation <<<" % user.nick)
+        return
+
+    def startPrivateChat(self, userid):
+        privatechatid = self.librewired.startPrivateChat()
+        if not privatechatid:
+            return 0
+        if not self.librewired.invitePrivateChat(privatechatid, userid):
+            return 0
+        self.privateChatJoin(privatechatid)
+        return 1
 
     def privateChatJoin(self, chatid):
         form = "%s-CHAT%s" % (self.conID, chatid)
