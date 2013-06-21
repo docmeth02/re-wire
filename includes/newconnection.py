@@ -81,6 +81,7 @@ class NewConnection(npyscreen.FormBaseNew):
         self.password.value = self.config.get(bookmarkname, 'password')
         self.reconnect.value = int(self.config.get(bookmarkname, 'autoreconnect'))
         self.appliedBookmark = bookmarkname
+        self.editw = 4
         return 1
 
     def doConnect(self, *args):
