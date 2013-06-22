@@ -168,6 +168,9 @@ class userlist():
                 if not self.parent.startPrivateChat(userid):
                     return 0
                 return 1
+            if 'Get User Info' in value:
+                self.parent.openUserInfo(userid)
+                return 1
             if "Kick" in value and self.parent.librewired.privileges['kickUsers']:
                 kick = rewireFunctions.textDialog("Kick user %s" % user.nick,
                                                   inputlabel="Enter message to show (optional):", oklabel="Kick")

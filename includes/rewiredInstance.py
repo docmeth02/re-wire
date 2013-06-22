@@ -1,7 +1,7 @@
 import npyscreen
 import curses
 from librewired import rewiredclient
-from includes import chatView, messageView
+from includes import chatView, messageView, userinfoView
 rewireMsg = messageView.rewireMsg
 from sys import argv
 from os import path
@@ -326,6 +326,17 @@ class rewiredInstance():
 
     def banUser(self, id, msg=""):
         return self.librewired.banUser(id, msg)
+
+    def openUserInfo(self, userid):
+        formid = "INFO-%s-%s" % (self.conID, userid)
+        if formid in self.forms:
+            self.parent.switchForm(formid)
+            return
+        view = userinfoView.userinfoview(self, userid, formid)
+        self.parent.registerForm(formid, view.build())
+        self.parent.switchForm(formid)
+        view.populate()
+        return
 
 
 class rewireNotification():
