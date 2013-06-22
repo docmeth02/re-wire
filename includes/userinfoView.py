@@ -26,8 +26,8 @@ class userinfoview():
         self.popup.show_atx = int((self.max_x - self.width) / 2)
         self.popup.show_aty = 1
         self.popup.add_handlers({curses.KEY_F3: self.close})
-        self.popup.add_handlers({curses.KEY_F1: self.parent.prevForm})
-        self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
+        #self.popup.add_handlers({curses.KEY_F1: self.parent.prevForm})
+        #self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
 
         self.user = self.popup.add(npyscreen.TitleText, relx=3, rely=2, name="User:", value="admin", editable=0,
                                    field_width=self.width-15, begin_entry_at=11)
