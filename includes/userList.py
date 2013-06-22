@@ -1,5 +1,6 @@
 import npyscreen
 import curses
+from includes import rewireFunctions
 
 
 class userlist():
@@ -18,10 +19,11 @@ class userlist():
                 npyscreen.notify_confirm("No such order: %s" % self.parent.chat)
                 return 0
             for akey in range(0, self.maxheight):
-                self.widgets[akey] = self.parent.add(npyscreen.FixedText, name="%s-%s" % (self.parent.chat, akey),
+                self.widgets[akey] = self.parent.add(userListText, name="%s-%s" % (self.parent.chat, akey),
                                                      relx=self.relx, rely=self.rely+akey, value="", max_height=1,
                                                      max_width=self.width, width=self.width, editable=0)
-                self.widgets[akey].add_handlers({curses.ascii.NL: self.itemSelected})
+                self.widgets[akey].hookparent(self)
+                self.widgets[akey].add_handlers({curses.ascii.NL: self.widgets[akey].selected})
             for key in order[self.parent.chat]:
                 auser = self.parent.librewired.getUserByID(key)
                 if not auser:
@@ -32,7 +34,8 @@ class userlist():
                         acctype = 1
                 if int(auser.admin):
                     acctype = 2
-                self.users.append(UserListItem(self, int(auser.userid), auser.nick, auser.status, int(auser.idle), acctype))
+                self.users.append(UserListItem(self, int(auser.userid),
+                                               auser.nick, auser.status, int(auser.idle), acctype))
             self.updateList()
             return 1
 
@@ -51,9 +54,15 @@ class userlist():
                         acctype = 1
                 if int(auser.admin):
                     acctype = 2
-                self.users.append(UserListItem(self, int(auser.userid), auser.nick, auser.status, int(auser.idle), acctype))
+                self.users.append(UserListItem(self, int(auser.userid),
+                                               auser.nick, auser.status, int(auser.idle), acctype))
             self.updateList()
             return 1
+
+    def refreshView(self):
+        for i in range(0, self.maxheight):
+            self.widgets[i].display()
+        return
 
     def updateList(self):
         with self.parent.lock:
@@ -64,7 +73,8 @@ class userlist():
                     name = self.users[i].nick
                     if self.users[i].isIdle:
                         name = "*%s" % name
-                    self.widgets[i].value = name
+                    self.widgets[i].value = name + " " * (self.width - len(name))
+                    self.widgets[i].name = self.users[i].userid
                     self.widgets[i].editable = 1
                     self.widgets[i].color = colors[self.users[i].acctype]
                     self.parent.deferred_update(self.widgets[i], True)
@@ -74,6 +84,7 @@ class userlist():
             if i != self.maxheight:
                 for i in range(i, self.maxheight):
                     self.widgets[i].value = " " * self.width
+                    self.widgets[i].name = 0
                     self.widgets[i].color = ''
                     self.widgets[i].editable = 0
                     self.parent.deferred_update(self.widgets[i], True)
@@ -120,14 +131,68 @@ class userlist():
                         acctype = 1
                 if int(auser.admin):
                     acctype = 2
-                self.users.append(UserListItem(self, int(auser.userid), auser.nick, auser.status, int(auser.idle), acctype))
+                self.users.append(UserListItem(self, int(auser.userid),
+                                               auser.nick, auser.status, int(auser.idle), acctype))
                 self.updateList()
                 return 1
             return 0
 
-    def itemSelected(self, *args):
-        #npyscreen.notify_confirm(str(args))
-        pass
+    def itemSelected(self, userid):
+        #npyscreen.notify_confirm(str(userid))
+        user = self.parent.librewired.getUserByID(userid)
+        options = ['Cancel', 'Start Private Chat', 'Send Message']
+        if self.parent.librewired.privileges['getUserInfo']:
+            options.append('Get User Info')
+        if self.parent.librewired.privileges['kickUsers']:
+            options.append('Kick')
+        if self.parent.librewired.privileges['banUsers']:
+            options.append('Ban')
+        menu = npyscreen.Popup(name="User: %s" % user.nick, framed=True, lines=len(options)+4, columns=25)
+        menu.show_atx = self.parent.max_x-30
+        menu.show_aty = 3
+        selector = menu.add_widget(npyscreen.MultiLine, values=options, value=None, color="CURSOR",
+                                   widgets_inherit_color=True,  slow_scroll=True, return_exit=True,
+                                   select_exit=True, width=20)
+        menu.display()
+        selector.edit()
+        if selector.value:
+            value = options[selector.value]
+            #npyscreen.notify_confirm(str(value))
+            if 'Send Message' in value:
+                message = rewireFunctions.composeMessage(userid)
+                if message:
+                    if not self.parent.sendPrivateMessage(int(userid), message):
+                        return 0
+                return 1
+            if 'Start Private Chat' in value:
+                if not self.parent.startPrivateChat(userid):
+                    return 0
+                return 1
+            if 'Get User Info' in value:
+                self.parent.openUserInfo(userid)
+                return 1
+            if "Kick" in value and self.parent.librewired.privileges['kickUsers']:
+                kick = rewireFunctions.textDialog("Kick user %s" % user.nick,
+                                                  inputlabel="Enter message to show (optional):", oklabel="Kick")
+                if kick:
+                    if type(kick) is str:
+                        msg = kick
+                    else:
+                        msg = ""
+                    if not self.parent.kickUser(userid, msg):
+                        return 0
+            if "Ban" in value and self.parent.librewired.privileges['banUsers']:
+                ban = rewireFunctions.textDialog("Ban user %s" % user.nick,
+                                                 inputlabel="Enter message to show (optional):", oklabel="Ban")
+                if ban:
+                    if type(ban) is str:
+                        msg = ban
+                    else:
+                        msg = ""
+                    if not self.parent.banUser(userid, msg):
+                        return 0
+                    return 1
+        return
 
     def checkStatusChanged(self, userid, newstatus):
         with self.parent.lock:
@@ -165,3 +230,13 @@ class UserListItem():
         self.isIdle = isIdle
         self.acctype = acctype  # guest / user / admin
         self.isupdated = 1
+
+
+class userListText(npyscreen.FixedText):
+    def hookparent(self, parent):
+        self.userlist = parent
+
+    def selected(self, *args, **kwargs):
+        if self.name:
+            self.userlist.itemSelected(self.name)
+        return 1
