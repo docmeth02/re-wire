@@ -10,8 +10,29 @@ Keyboard Shortcuts:
 	F1		-	switch view to previous window
 	F2		-	switch view to next window
 	F3		-	open message view for parent windows server connection
+	F4		-	open server news view
 	ctrl + d	-	disconnect from server
 	tab key	-	autocomplete commands or nicknames in chat input field
+
+=======
+Commands:
+    (can be typed into every chat input)
+	/nick 	(newnick)			-	change nickname
+	/status	(newstatus)		-	change status
+	/icon	(pathtoicon.png)	-	load icon from specified file.
+								both relative and absolute paths are valid.
+	/topic	(newtopic)		-	set topic of active chat
+	/me	(text)				-	send text as action chat
+
+	/clear					-	remove all text from active chat
+	/clear-all					-	does the same but for all chat views
+
+	/afk						-	append [afk] to your status
+	/afk-all					-	same as above but for all active connections
+	/away					-	append [zZz] to your status
+	/away-all					-	same as above but for all active connections
+	/back					-	remove [afk] or [zZz] from your status
+	/back-all					-	again the same for all connections
 
 =======
 Config File:
