@@ -19,7 +19,8 @@ class chatview(npyscreen.FormMutt):
                                 curses.KEY_F2: self.parent.nextForm,
                                 curses.KEY_F3: self.parent.openMessageView,
                                 curses.KEY_F4: self.parent.openNewsView}
-        self.validCommands = ['/nick', '/status', '/ping', '/icon', '/topic', '/me', '/clear', '/afk', '/away', '/back']
+        self.validCommands = ['/nick', '/status', '/ping', '/icon', '/topic', '/me', '/clear', '/clear-all',
+                              '/afk', '/away', '/back', '/afk-all', '/away-all', '/back-all']
         self.commandHandler = commandHandler.commandhandler(self, self.librewired)
         super(chatview, self).__init__(**kwargs)
         self.add_handlers({"^D": self.closeForm})
@@ -182,6 +183,9 @@ class chatview(npyscreen.FormMutt):
 
     def openUserInfo(self, userid):
         return self.parent.openUserInfo(userid)
+
+    def applyCommandToAll(self, command):
+        return self.parent.applyCommandToAll(command)
 
 
 class chatInvite(npyscreen.FormBaseNew):

@@ -359,6 +359,15 @@ class rewiredInstance():
         view.populate()
         return
 
+    def applyCommandToAll(self, command):
+        return self.parent.applyCommandToAll(command)
+
+    def checkCommand(self, command):
+        for aform in self.forms:
+            if type(self.parent._Forms[aform]) is chatView.chatview:
+                if hasattr(self.parent._Forms[aform], 'commandHandler'):
+                    self.parent._Forms[aform].commandHandler.checkCommand(command)
+
 
 class rewireNotification():
     def __init__(self, nftype, label, count, ident, color='DEFAULT'):

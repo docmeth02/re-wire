@@ -94,6 +94,11 @@ class reWire(npyscreen.NPSAppManaged):
     def returnActiveForm(self):
         return self.activeform
 
+    def applyCommandToAll(self, command):
+        for akey, aserver in self.servers.items():
+            aserver.checkCommand(command)
+        return 1
+
     def timerfired(self):
         for aforid, aform in self._Forms.items():
             if hasattr(aform, "onTimer"):

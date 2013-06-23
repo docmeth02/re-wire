@@ -1,7 +1,7 @@
 import npyscreen
 from os import path
 from sys import argv
-from curses import beep
+from curses import beep, flash
 
 
 class commandhandler():
@@ -13,7 +13,10 @@ class commandhandler():
     def checkCommand(self, string):
         command = 0
         for acommand in self.validCommands:
-            if acommand.upper() == string[0:len(acommand)].upper():
+            check = string
+            if " " in check:
+                check = check.split(" ")[0]
+            if acommand.upper() == check.upper():
                 command = acommand
                 break
         if not command:
@@ -31,21 +34,29 @@ class commandhandler():
             self.setTopic(parameter)
         elif command == '/me':
             self.sendActionChat(parameter)
+        elif command == '/clear-all':
+            self.parent.applyCommandToAll('/clear')
         elif command == '/clear':
             self.parent.box.values = []
             self.parent.box.update()
+        elif command == '/afk-all':
+            self.parent.applyCommandToAll('/afk')
         elif command == '/afk':
             if ' [afk]' in self.librewired.status\
                     or ' [zZz]' in self.librewired.status:
                 return 1
             self.librewired.status = self.librewired.status + ' [afk]'
             self.librewired.changeStatus(self.librewired.status)
+        elif command == '/away-all':
+            self.parent.applyCommandToAll('/away')
         elif command == '/away':
             if ' [afk]' in self.librewired.status\
                     or ' [zZz]' in self.librewired.status:
                 return 1
             self.librewired.status = self.librewired.status + ' [zZz]'
             self.librewired.changeStatus(self.librewired.status)
+        elif command == '/back-all':
+            self.parent.applyCommandToAll('/back')
         elif command == '/back':
             status = 0
             if ' [afk]' in self.librewired.status:
