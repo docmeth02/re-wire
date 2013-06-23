@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from signal import signal, SIGINT, SIGTERM
 from time import sleep, time
-from logging import getLogger, DEBUG, StreamHandler
+from logging import getLogger, DEBUG, NullHandler
 from includes import newconnection, rewiredInstance
 from includes import rewireFunctions
 from threading import Timer
@@ -28,6 +28,9 @@ class reWire(npyscreen.NPSAppManaged):
         self.timer.start()
         self.chooser.runAutoconnect()
         self.activeform = 0
+        self.logger = getLogger('lib:re:wired')
+        self.handler = NullHandler()
+        self.logger.addHandler(self.handler)
 
     def shutdown(self):
         for akey, aserver in self.servers.items():
