@@ -27,6 +27,7 @@ class messageview():
         self.popup.add_handlers({curses.KEY_F3: self.close})
         self.popup.add_handlers({curses.KEY_F1: self.parent.prevForm})
         self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
+        self.popup.add_handlers({curses.KEY_F4: self.parent.openNewsView})
 
         self.select = self.popup.add_widget(npyscreen.MultiLineAction, relx=2, rely=2,
                                             max_height=self.max_y - 8, height=self.max_y-8, values=[],

@@ -17,7 +17,8 @@ class chatview(npyscreen.FormMutt):
         self.librewired = self.parent.librewired
         self.defaultHandlers = {curses.KEY_F1: self.parent.prevForm,
                                 curses.KEY_F2: self.parent.nextForm,
-                                curses.KEY_F3: self.parent.openMessageView}
+                                curses.KEY_F3: self.parent.openMessageView,
+                                curses.KEY_F4: self.parent.openNewsView}
         self.validCommands = ['/nick', '/status', '/ping', '/icon', '/topic', '/me', '/clear', '/afk', '/away', '/back']
         self.commandHandler = commandHandler.commandhandler(self, self.librewired)
         super(chatview, self).__init__(**kwargs)

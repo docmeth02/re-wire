@@ -74,3 +74,20 @@ def textDialog(title, inputlabel="Enter text:", oklabel="OK"):
     if action and text.value:
         return text.value
     return action
+
+
+def formatTime(seconds):
+    days = int(seconds // (3600 * 24))
+    hours = int((seconds // 3600) % 24)
+    minutes = int((seconds // 60) % 60)
+    seconds = int(seconds % 60)
+    return "%s days, %s:%s:%s" % (days, str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2))
+
+
+def checkssWiredImage(string):
+    if "data:image" in string:
+        if string.count(chr(3)) == 2:
+            string = string[:string.find(chr(3))]
+        if string.count(chr(128)):
+            string = string.replace(chr(128), '')
+    return string

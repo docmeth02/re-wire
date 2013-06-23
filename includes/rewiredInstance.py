@@ -1,7 +1,7 @@
 import npyscreen
 import curses
 from librewired import rewiredclient
-from includes import chatView, messageView, userinfoView
+from includes import chatView, messageView, userinfoView, newsView, rewireFunctions
 rewireMsg = messageView.rewireMsg
 from sys import argv
 from os import path
@@ -25,13 +25,13 @@ class rewiredInstance():
         self.librewired = rewiredclient.client(self)
         self.homepath = path.dirname(argv[0])
 
+        self.newsview = 0
+
         self.msgview = 0
         self.msguserids = []
         self.msgnicks = {}
         self.msgs = {}
 
-        self.notifications = [rewireNotification("MSG", '%s unread messages from docmeth02', 1, 11),
-                              rewireNotification("BOO", 'This is another notification', 6, 111)]
         self.notifications = []
 
         icon = self.config.get(profile, 'icon')
@@ -67,6 +67,7 @@ class rewiredInstance():
         self.librewired.notify("__Reconnected", self.reconnected)
         self.librewired.notify("__UserListDone", self.userListReady)
         self.librewired.notify("__PrivateMessage", self.gotPrivateMessage)
+        self.librewired.notify("__NewsPosted", self.gotNewsPosted)
 
         formid = "%s-CHAT1" % (self.conID)
         self.chats[1] = chatView.chatview(self, formid, 1)  # init public chat
@@ -81,6 +82,7 @@ class rewiredInstance():
                 self.fail = 2
         if self.fail:
             del self.chats[1]
+        self.librewired.getNews()
 
     def userListReady(self, msg):
         chatid = msg[0]
@@ -121,15 +123,11 @@ class rewiredInstance():
     def gotChat(self, chat, action=False):
         chat = chat.msg
         nick = self.librewired.getNickByID(int(chat[1]))
-        if "data:image" in chat[2]:
-            if chat[2].count(chr(3)) == 2:
-                chat[2] = chat[2][:chat[2].find(chr(3))]
-            if chat[2].count(chr(128)):
-                chat[2] = chat[2].replace(chr(128), '')
-        if not len(chat[2]):
+        text = rewireFunctions.checkssWiredImage(chat[2])
+        if not len(text):
             return
         if int(chat[0]) in self.chats and nick:  # 2 = data
-            self.chats[int(chat[0])].chatreceived(nick, chat[2], action)
+            self.chats[int(chat[0])].chatreceived(nick, text, action)
         return
 
     def gotActionChat(self, chat):
@@ -144,6 +142,9 @@ class rewiredInstance():
         return
 
     def gotPrivateMessage(self, userid, message):
+        message = rewireFunctions.checkssWiredImage(message)
+        if not message:
+            return 0
         userid = int(userid)
         user = self.librewired.getUserByID(userid)
         if not user:
@@ -255,6 +256,23 @@ class rewiredInstance():
         self.parent.switchForm(formid)
         return
 
+    def openNewsView(self, *args, **kwargs):
+        formid = "NEWS-%s" % self.conID
+        if self.newsview:
+            self.switchForm(formid)
+            return
+        self.newsview = newsView.newsview(self, formid)
+        self.parent.registerForm(formid, self.newsview.build())
+        self.parent.switchForm(formid)
+        return
+
+    def gotNewsPosted(self, newsobj):
+        if self.newsview:
+            self.newsview.populate()
+            return 1
+        self.addNotification('NEWS', 'New News got posted', 0, -1, color='NO_EDIT')
+        pass
+
     def clientLeft(self, msg, client):
         self.updateUserList(msg, True, client)
         return
@@ -315,6 +333,9 @@ class rewiredInstance():
     def removeNotification(self, nftype, removecount, ident):
         for i in range(0, len(self.notifications)):
             if self.notifications[i].nftype == nftype and self.notifications[i].ident == ident:
+                if removecount == -1:
+                    self.notifications.pop(i)
+                    break
                 self.notifications[i].count = self.notifications[i].count - removecount
                 if not self.notifications[i].count:
                     self.notifications.pop(i)
