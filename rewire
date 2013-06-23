@@ -40,7 +40,10 @@ class reWire(npyscreen.NPSAppManaged):
         return 1
 
     def removeConnection(self, conID):
-        del(self.servers[conID])
+        if conID in self.servers:
+            del(self.servers[conID])
+            return 1
+        return 0
 
     def registerForm(self, f_id, fm):
         fm.parentApp = weakref.proxy(self)

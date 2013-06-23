@@ -102,7 +102,7 @@ class rewiredInstance():
                 if type(aform) is not str:
                     self.parent.removeForm(aform.formid)
             self.parent.removeConnection(self.conID)
-            self.parent.switchForm("MAIN")
+            self.parent.switchNextForm()
             return 1
         self.parent.removeForm(formid)
         self.parent.switchForm("%s-CHAT1" % self.conID)  # back to public chat
