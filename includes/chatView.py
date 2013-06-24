@@ -51,7 +51,8 @@ class chatview(npyscreen.FormMutt):
                                   begin_entry_at=1, max_width=self.max_x - 17, name="%s-%s" % (self.formid, self.chat))
 
         self.chatinput.hookParent(self)
-        self.chatinput.add_handlers({curses.ascii.NL: self.chatinputenter})
+        self.chatinput.add_handlers({curses.ascii.NL: self.chatentered})
+        self.chatinput.add_handlers({curses.KEY_ENTER: self.chatinputenter})
         self.chatinput.add_handlers({curses.KEY_BACKSPACE: self.chatinput.backspace})
         self.chatinput.add_handlers({curses.KEY_F3: self.parent.openMessageView})
         self.chatinput.add_handlers(self.defaultHandlers)
@@ -67,14 +68,20 @@ class chatview(npyscreen.FormMutt):
         # since we are not the active form, there is no need to update the screen
         return 0
 
-    def chatinputenter(self, *args):
+    def chatentered(self, *args, **kwargs):
+        action = 0
+        if 'action' in kwargs:
+            action = int(kwargs['action'])
         self.chatinput.lastcomplete = 0
         self.chatinput.laststr = 0
         chat = self.chatinput.value
         if chat:
             if not self.commandHandler.checkCommand(chat):
-                self.parent.sendChat(self.chat, chat)
+                self.parent.sendChat(self.chat, chat, action)
         self.chatinput.value = ""
+
+    def chatinputenter(self, *args):
+        self.chatentered(self, action=True)
 
     def focusInput(self, *args):
         self.chatinput.edit()

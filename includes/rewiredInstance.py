@@ -133,12 +133,12 @@ class rewiredInstance():
     def gotActionChat(self, chat):
         self.gotChat(chat, True)
 
-    def sendChat(self, chatid, chat):
+    def sendChat(self, chatid, chat, action=False):
         try:
                 chat = chat.encode("UTF-8")
         except:
                 pass
-        self.librewired.sendChat(int(chatid), chat)
+        self.librewired.sendChat(int(chatid), chat, action)
         return
 
     def gotPrivateMessage(self, userid, message):
