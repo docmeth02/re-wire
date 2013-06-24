@@ -1,7 +1,7 @@
 import npyscreen
 import curses
 from librewired import rewiredclient
-from includes import chatView, messageView, userinfoView, newsView, rewireFunctions
+from includes import chatView, messageView, userinfoView, newsView, rewireFunctions, fileView
 rewireMsg = messageView.rewireMsg
 from sys import argv
 from os import path
@@ -26,7 +26,7 @@ class rewiredInstance():
         self.homepath = path.dirname(argv[0])
 
         self.newsview = 0
-
+        self.fileview = 0
         self.msgview = 0
         self.msguserids = []
         self.msgnicks = {}
@@ -263,6 +263,16 @@ class rewiredInstance():
             return
         self.newsview = newsView.newsview(self, formid)
         self.parent.registerForm(formid, self.newsview.build())
+        self.parent.switchForm(formid)
+        return
+
+    def openFileView(self, *args, **kwargs):
+        formid = "FILES-%s" % self.conID
+        if self.fileview:
+            self.switchForm(formid)
+            return
+        self.fileview = fileView.fileview(self, formid)
+        self.parent.registerForm(formid, self.fileview.build())
         self.parent.switchForm(formid)
         return
 

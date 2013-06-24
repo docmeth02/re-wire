@@ -11,6 +11,7 @@ Keyboard Shortcuts:
 	F2		-	switch view to next window
 	F3		-	open message view for parent windows server connection
 	F4		-	open server news view
+        F5		-	open server files
 	ctrl + d	-	disconnect from server
 	tab key	-	autocomplete commands or nicknames in chat input field
 
