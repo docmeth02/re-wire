@@ -19,7 +19,8 @@ class fileview():
         self.popup.show_aty = 1
         half = int((self.max_x-2)/2)
         self.remoteview = remotefilebrowser(self.popup, self.parent.librewired, "/", 1, 2, half-1, self.max_y-18)
-        self.localview = localfilebrowser(self.popup, "/", half, 2, half-3, self.max_y-18, 'CAUTION')
+        self.localview = localfilebrowser(self.popup, path.abspath(self.parent.homepath),
+                                          half, 2, half-3, self.max_y-18, 'CAUTION')
 
         self.closebutton = self.popup.add(npyscreen.ButtonPress, relx=2, rely=self.max_y-6, name="Close")
         self.closebutton.whenPressed = self.close
@@ -176,8 +177,8 @@ class remotefilebrowser(filebrowser):
     def __init__(self, parentform, librewired, path, relx, rely, width, height, color="NO_EDIT"):
         self.librewired = librewired
         super(remotefilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
-        self.fileoptions = []
-        self.diroptions = []
+        self.fileoptions = ['Download', 'Info', 'Delete']
+        self.diroptions = self.fileoptions + ['Create Folder']
 
     def populate(self):
         self.items = []
@@ -189,7 +190,7 @@ class remotefilebrowser(filebrowser):
             return 0
         dirlist = sorted(result, key=lambda x: x.path,  cmp=lambda x, y: cmp(x.lower(), y.lower()))
         for aitem in dirlist:
-            if int(aitem.type) in range(1, 3):
+            if int(aitem.type) in range(1, 4):
                 self.items.append("[%s]" % path.basename(aitem.path))
                 continue
             self.items.append(path.basename(aitem.path))
