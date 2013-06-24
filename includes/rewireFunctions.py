@@ -10,6 +10,9 @@ def load_config(fullpath, filename=False):
         conffile = filename
     if not path.exists(path.join(fullpath, conffile)):
         ## Create default config file
+        config.add_section("settings")
+        config.set("settings", 'timestampchat', 1)
+        config.set("settings", 'timeformat', '[%H:%M]')
         config.add_section("defaults")
         config.set("defaults", 'server', 're-wired.info')
         config.set("defaults", 'port', '2000')
