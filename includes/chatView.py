@@ -3,6 +3,7 @@ import curses
 from includes import commandHandler, userList, autoCompleter
 from textwrap import wrap
 from threading import RLock
+from time import strftime
 
 
 class chatview(npyscreen.FormMutt):
@@ -93,27 +94,26 @@ class chatview(npyscreen.FormMutt):
             self.appendChat(str(chat), str(nick))
 
     def appendChat(self, chat, nick=False):
-        length = len(chat)
-        width = self.box.width
+        curtime = ""
+        if int(self.parent.config.get('settings', 'timestampchat')):
+            try:
+                curtime = strftime(self.parent.config.get('settings', 'timeformat'))
+            except Exception:  # save default
+                curtime = strftime('[%H:%M]')
+        nicktext = ""
         if nick:
-            length += len(nick)+2
-        if length > width:
-            if nick:
-                lines = wrap(chat, width - (len(nick) + 2))
-                for i in range(0, len(lines)):
-                    if not i:
-                        lines[i] = "%s: %s" % (nick, lines[i])
-                    else:
-                        spacing = " " * (len(nick) + 2)
-                        lines[i] = spacing + lines[i]
-            else:
-                lines = wrap(chat, width)
-        else:
-            if nick:
-                chat = "%s: %s" % (nick, chat)
-            lines = [chat]
-        for achat in lines:
-            self.box.values += [achat]
+            nicktext = " %s" % nick
+        header = "%s%s" % (curtime, nicktext)
+        if len(header):
+            header += ": "
+        lines = [chat]
+        if (len(header) + len(chat)) >= (self.box.width - 1):
+            lines = wrap(chat, (self.box.width - 1) - len(header))
+        for i in range(0, len(lines)):
+            if not i:
+                self.box.values.append(header + lines[i])
+                continue
+            self.box.values.append((" " * len(header)) + lines[i])
         self.box.h_show_end("")
         self.deferred_update(self.box, True)
 
