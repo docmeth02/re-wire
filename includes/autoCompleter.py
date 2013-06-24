@@ -49,6 +49,8 @@ class autocompleter(npyscreen.Autocomplete):
         self.value = ""
         self.display()
         self.value = results[index]
+        if len(results) == 1 and not "/" in self.value[:1]:
+            self.value += ": "
         self.cursor_position += len(self.value)
         self.update()
         self.lastcomplete = results[index]
