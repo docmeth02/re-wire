@@ -60,7 +60,7 @@ class NewConnection(npyscreen.FormBaseNew):
     def openBookmarks(self, *args, **kwargs):
         servers = []
         for aserver in self.config.sections():
-            if aserver != "defaults":
+            if aserver != "defaults" and aserver != "settings":
                 servers.append(aserver)
         self.bookmarkview = bookmarkPopUp(self, servers)
         self.parent.registerForm("BOOKMARKSELECT", self.bookmarkview.build())
