@@ -55,7 +55,8 @@ class chatview(npyscreen.FormMutt):
         self.chatinput.add_handlers({curses.ascii.NL: self.chatentered})
         self.chatinput.add_handlers({curses.KEY_ENTER: self.chatinputenter})
         self.chatinput.add_handlers({curses.KEY_BACKSPACE: self.chatinput.backspace})
-        self.chatinput.add_handlers({curses.KEY_F3: self.parent.openMessageView})
+        self.chatinput.add_handlers({'^A': self.chatinput.cursorLeft})
+        self.chatinput.add_handlers({'^E': self.chatinput.cursorRight})
         self.chatinput.add_handlers(self.defaultHandlers)
         self.editw = 4
 

@@ -55,3 +55,9 @@ class autocompleter(npyscreen.Autocomplete):
         self.update()
         self.lastcomplete = results[index]
         return 1
+
+    def cursorLeft(self, *args, **kwargs):
+        self.cursor_position = 0
+
+    def cursorRight(self, *args, **kwargs):
+        self.cursor_position = len(self.value)
