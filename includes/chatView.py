@@ -39,13 +39,13 @@ class chatview(npyscreen.FormMutt):
             chat = "Private Chat %s" % self.chat
         self.name = "re:wire @%s: %s " % (self.parent.host, chat)
         self.title = self.add(npyscreen.FixedText, name="title", editable=0, rely=0, value=self.name)
-        self.box = self.add(npyscreen.Pager, rely=1, relx=0, width=self.max_x - 18, height=self.max_y - 4,
-                            max_width=self.max_x - 17, max_height=self.max_y - 4, editable=1, color="CURSOR",
+        self.box = self.add(npyscreen.Pager, rely=2, relx=0, width=self.max_x - 18, height=self.max_y - 4,
+                            max_width=self.max_x - 17, max_height=self.max_y - 2, editable=1, color="CURSOR",
                             widgets_inherit_color=True)
         self.userlist = userList.userlist(self, self.max_x - 17, 1, 16, self.max_y - 3)
 
         self.topic = self.add(npyscreen.TitleText, name="Topic:", value="", begin_entry_at=9, hidden=1,
-                              relx=0, rely=self.max_y - 3, editable=False, max_width=self.max_x - 20)
+                              relx=0, rely=1, editable=False, max_width=self.max_x - 20, color="NO_EDIT")
         self.topic.label_widget.hidden = 1
 
         self.chatlabel = self.add(npyscreen.TitleText, name="Chat: ", relx=0, rely=self.max_y - 1, editable=False)
@@ -56,7 +56,8 @@ class chatview(npyscreen.FormMutt):
         self.chatinput.add_handlers({curses.ascii.NL: self.chatentered})
         self.chatinput.add_handlers({curses.KEY_ENTER: self.chatinputenter})
         self.chatinput.add_handlers({curses.KEY_BACKSPACE: self.chatinput.backspace})
-        self.chatinput.add_handlers({curses.KEY_F3: self.parent.openMessageView})
+        self.chatinput.add_handlers({'^A': self.chatinput.cursorLeft})
+        self.chatinput.add_handlers({'^E': self.chatinput.cursorRight})
         self.chatinput.add_handlers(self.defaultHandlers)
         self.editw = 4
 
