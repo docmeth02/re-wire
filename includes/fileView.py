@@ -79,11 +79,11 @@ class filebrowser(object):
         if selection == self.parentfolder:
             self.itemHighlighted(selection)
             return
-        pathtype = "FILE"
-        isdir = self.selectionIsPath(selection)
+        pathtype = -1
+        isdir, dirtype = self.selectionIsPath(selection)
         if isdir:
             selection = isdir
-            pathtype = "DIR"
+            pathtype = dirtype
         action = self.popupmenu(path.join(self.path, selection), pathtype)
         if action:
             self.actionSelected(path.join(self.path, selection), pathtype, action)
@@ -125,7 +125,7 @@ class filebrowser(object):
     def popupmenu(self, path, pathtype, options=False):
         if not options:
             options = []
-            if 'FILE' in pathtype:
+            if pathtype < 0:
                 if len(self.fileoptions):
                     options += (self.fileoptions)
             else:
