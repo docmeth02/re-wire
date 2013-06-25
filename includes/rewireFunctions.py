@@ -11,7 +11,7 @@ def load_config(fullpath, filename=False):
     if not path.exists(path.join(fullpath, conffile)):
         ## Create default config file
         config.add_section("settings")
-        config.set("settings", 'timestampchat', 1)
+        config.set("settings", 'timestampchat', '1')
         config.set("settings", 'timeformat', '[%H:%M]')
         config.add_section("defaults")
         config.set("defaults", 'server', 're-wired.info')
@@ -31,7 +31,9 @@ def load_config(fullpath, filename=False):
         try:
             config.read(path.join(fullpath, conffile))
         except Exception as e:
-            return 0
+            pass
+    config.set("DEFAULT", 'timestampchat', '1')
+    config.set("DEFAULT", 'timeformat', '[%H:%M]')
     config.set("DEFAULT", 'server', 're-wired.info')
     config.set("DEFAULT", 'port', '2000')
     config.set("DEFAULT", 'user', 'guest')
