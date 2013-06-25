@@ -49,12 +49,11 @@ class filebrowser(object):
         self.width = width
         self.height = height
         self.color = color
+        self.dirtype = 0
         self.parentfolder = '* Parent Folder *'
         self.parentpos = 0
-
         self.fileoptions = []
         self.diroptions = []
-
         self.items = []
 
         ###
@@ -98,8 +97,9 @@ class filebrowser(object):
                 self.parentpos = 0
             self.populate()
             return 1
-        isdir = self.selectionIsPath(selection)
+        isdir, dirtype = self.selectionIsPath(selection)
         if isdir:
+            self.dirtype = dirtype
             self.path = path.join(self.path, isdir)
             self.parentpos = self.select.cursor_line  # store position for parent folder
             self.select.cursor_line = 0
@@ -112,10 +112,11 @@ class filebrowser(object):
         return 1
 
     def selectionIsPath(self, selection):
-        if selection[:1] == "[" and selection[len(selection)-1:] == "]":
-            selection = selection[1:len(selection)-1:]
-            return selection
-        return 0
+        for atype, asep in self.foldertypes.items():
+            asep = asep % ""
+            if asep[:1] in selection[:1] and asep[-1] in selection[-1]:
+                return (selection[1:-1], atype)
+        return (0, 0)
 
     def actionSelected(self, path, pathtype, action):
         npyscreen.notify_confirm("%s - %s - %s" % (path, pathtype, action))
@@ -152,8 +153,9 @@ class filebrowser(object):
 class localfilebrowser(filebrowser):
     def __init__(self, parentform, path, relx, rely, width, height, color="NO_EDIT"):
         super(localfilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
-        self.fileoptions = []
-        self.diroptions = []
+        self.fileoptions = ['Upload']
+        self.diroptions = ['Upload']
+        self.foldertypes = {0: "(%s)"}
 
     def populate(self):
         self.items = []
@@ -176,6 +178,7 @@ class localfilebrowser(filebrowser):
 class remotefilebrowser(filebrowser):
     def __init__(self, parentform, librewired, path, relx, rely, width, height, color="NO_EDIT"):
         self.librewired = librewired
+        self.foldertypes = {1: '[%s]', 2: '(%s)', 3: '<%s>'}
         super(remotefilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
         self.fileoptions = ['Download', 'Info', 'Delete']
         self.diroptions = self.fileoptions + ['Create Folder']
@@ -190,8 +193,8 @@ class remotefilebrowser(filebrowser):
             return 0
         dirlist = sorted(result, key=lambda x: x.path,  cmp=lambda x, y: cmp(x.lower(), y.lower()))
         for aitem in dirlist:
-            if int(aitem.type) in range(1, 4):
-                self.items.append("[%s]" % path.basename(aitem.path))
+            if int(aitem.type) in range(1, len(self.foldertypes)+1):
+                self.items.append(self.foldertypes[int(aitem.type)] % path.basename(aitem.path))
                 continue
             self.items.append(path.basename(aitem.path))
         self.select.values = self.items
