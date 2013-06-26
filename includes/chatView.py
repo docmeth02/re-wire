@@ -97,11 +97,15 @@ class chatview(npyscreen.FormMutt):
 
     def appendChat(self, chat, nick=False):
         curtime = ""
-        if int(self.parent.config.get('settings', 'timestampchat')):
+        if self.parent.config.has_option('settings', 'timestampchat'):
+            timestampchat = self.parent.config.get('settings', 'timestampchat')
+        else:
+            timestampchat = self.parent.config.get('DEFAULT', 'timestampchat')
+        if int(timestampchat):
             try:
                 curtime = strftime(self.parent.config.get('settings', 'timeformat'))
-            except Exception:  # save default
-                curtime = strftime('[%H:%M]')
+            except Exception:  # use default
+                curtime = strftime(self.parent.config.get('DEFAULT', 'timeformat'))
         nicktext = ""
         if nick:
             nicktext = " %s" % nick

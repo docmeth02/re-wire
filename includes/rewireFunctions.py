@@ -1,4 +1,6 @@
 from ConfigParser import ConfigParser
+from time import time, altzone, timezone, mktime, daylight
+from datetime import datetime, timedelta
 from os import path
 import npyscreen
 
@@ -11,7 +13,7 @@ def load_config(fullpath, filename=False):
     if not path.exists(path.join(fullpath, conffile)):
         ## Create default config file
         config.add_section("settings")
-        config.set("settings", 'timestampchat', 1)
+        config.set("settings", 'timestampchat', '1')
         config.set("settings", 'timeformat', '[%H:%M]')
         config.add_section("defaults")
         config.set("defaults", 'server', 're-wired.info')
@@ -31,7 +33,9 @@ def load_config(fullpath, filename=False):
         try:
             config.read(path.join(fullpath, conffile))
         except Exception as e:
-            return 0
+            pass
+    config.set("DEFAULT", 'timestampchat', '1')
+    config.set("DEFAULT", 'timeformat', '[%H:%M]')
     config.set("DEFAULT", 'server', 're-wired.info')
     config.set("DEFAULT", 'port', '2000')
     config.set("DEFAULT", 'user', 'guest')
@@ -77,6 +81,20 @@ def textDialog(title, inputlabel="Enter text:", oklabel="OK"):
     if action and text.value:
         return text.value
     return action
+
+
+def wiredTimeToTimestamp(timestring):
+    if daylight:  # use offset including DST
+        offset = altzone
+    else:
+        offset = timezone
+    try:
+        parsed = datetime.strptime(timestring[:-6], '%Y-%m-%dT%H:%M:%S')
+        parsed -= timedelta(hours=int(timestring[-5:-3]), minutes=int(timestring[-2:]))*int(timestring[-6:-5]+'1')
+        parsed -= timedelta(seconds=offset)
+    except ValueError:
+        return 0
+    return mktime(parsed.timetuple())
 
 
 def formatTime(seconds):
