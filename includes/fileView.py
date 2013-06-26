@@ -178,7 +178,7 @@ class filebrowser(object):
 
 class localfilebrowser(filebrowser):
     def __init__(self, parentform, path, relx, rely, width, height, color="NO_EDIT"):
-        self.foldertypes = {0: "(%s)"}
+        self.foldertypes = {0: "[%s]"}
         super(localfilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
         self.fileoptions = ['Upload']
         self.diroptions = ['Upload']
