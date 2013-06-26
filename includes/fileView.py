@@ -24,7 +24,8 @@ class fileview():
         remoteoptions = []
         if self.parent.librewired.privileges['download']:
             remoteoptions.append('Download')
-        #if self.parent.librewired.privileges['alterFiles']:
+        if self.parent.librewired.privileges['alterFiles']:
+            remoteoptions.append('Rename')
         remoteoptions.append('Info')
         if self.parent.librewired.privileges['deleteFiles']:
             remoteoptions.append('Delete')
@@ -75,7 +76,15 @@ class fileview():
                 return 0
             transfer = self.parent.librewired.download(target, sourcepath)
             self.parent.transfers.append(transfer)
-
+        elif 'Delete' in action:
+            if npyscreen.notify_ok_cancel("Are you sure you want to delete %s?\nThis action cannot be undone!"
+                                          % sourcepath, "Delete"):
+                if not self.parent.librewired.delete(sourcepath):
+                    npyscreen.notify_confirm("Server failed to delete %s" % sourcepath, "Server Error")
+                    return 0
+                self.remoteview.populate()
+                return 1
+            return 0
         elif 'Create Folder' in action:
             options = ['Plain Folder']
             if self.parent.librewired.privileges['alterFiles']:
