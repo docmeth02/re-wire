@@ -85,6 +85,22 @@ class fileview():
                 self.remoteview.populate()
                 return 1
             return 0
+
+        elif 'Rename' in action:
+            oldpath = sourcepath
+            newpath = rewireFunctions.textDialog("Rename %s" % display_path(oldpath, 20), "New Name:", "Rename")
+            if newpath:
+                if not type(newpath) is str or search(r'[^A-Za-z0-9 _\-\.\\]', newpath):
+                    npyscreen.notify_confirm("You need to enter a valid new filename!")
+                    return 0
+                newpath = path.join(path.dirname(oldpath), newpath)
+                if not self.parent.librewired.move(oldpath, newpath):
+                    npyscreen.notify_confirm("Server failed to move %s to %s" % (oldpath, newpath), "Server Error")
+                    return 0
+                self.remoteview.populate()
+                return 1
+            return 0
+
         elif 'Create Folder' in action:
             options = ['Plain Folder']
             if self.parent.librewired.privileges['alterFiles']:
