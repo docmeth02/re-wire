@@ -1,4 +1,6 @@
 from ConfigParser import ConfigParser
+from time import time, altzone, timezone, mktime, daylight
+from datetime import datetime, timedelta
 from os import path
 import npyscreen
 
@@ -79,6 +81,20 @@ def textDialog(title, inputlabel="Enter text:", oklabel="OK"):
     if action and text.value:
         return text.value
     return action
+
+
+def wiredTimeToTimestamp(timestring):
+    if daylight:  # use offset including DST
+        offset = altzone
+    else:
+        offset = timezone
+    try:
+        parsed = datetime.strptime(timestring[:-6], '%Y-%m-%dT%H:%M:%S')
+        parsed -= timedelta(hours=int(timestring[-5:-3]), minutes=int(timestring[-2:]))*int(timestring[-6:-5]+'1')
+        parsed -= timedelta(seconds=offset)
+    except ValueError:
+        return 0
+    return mktime(parsed.timetuple())
 
 
 def formatTime(seconds):

@@ -1,8 +1,7 @@
-from time import time, altzone, timezone, mktime, daylight
-from datetime import datetime, timedelta
 from includes import rewireFunctions
 from os.path import basename
 from threading import Timer
+from time import time
 import npyscreen
 import curses
 
@@ -71,10 +70,10 @@ class userinfoview():
         else:
             self.client.value = version
             self.clientos = ''
-        login = wiredTimeToTimestamp(userinfo['login-time'])
-        self.login.value = formatTime(time() - login)
-        idle = wiredTimeToTimestamp(userinfo['idle-time'])
-        self.idle.value = formatTime(time() - idle)
+        login = rewireFunctions.wiredTimeToTimestamp(userinfo['login-time'])
+        self.login.value = rewireFunctions.formatTime(time() - login)
+        idle = rewireFunctions.wiredTimeToTimestamp(userinfo['idle-time'])
+        self.idle.value = rewireFunctions.formatTime(time() - idle)
 
         self.transfer[0].active = 0
         self.transfer[1].active = 0
@@ -197,28 +196,6 @@ def format_size_numeric(progress, size):
         size /= 1024.0
         progress /= 1024.0
     return (round(progress, 2), round(size, 2))
-
-
-def wiredTimeToTimestamp(timestring):
-    if daylight:  # use offset including DST
-        offset = altzone
-    else:
-        offset = timezone
-    try:
-        parsed = datetime.strptime(timestring[:-6], '%Y-%m-%dT%H:%M:%S')
-        parsed += timedelta(hours=int(timestring[-5:-3]), minutes=int(timestring[-2:]))*int(timestring[-6:-5]+'1')
-        parsed += timedelta(seconds=offset)
-    except ValueError:
-        return 0
-    return mktime(parsed.timetuple())
-
-
-def formatTime(seconds):
-    days = int(seconds // (3600 * 24))
-    hours = int((seconds // 3600) % 24)
-    minutes = int((seconds // 60) % 60)
-    seconds = int(seconds % 60)
-    return "%s days, %s:%s:%s" % (days, str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2))
 
 
 def parseVersionString(versionString):
