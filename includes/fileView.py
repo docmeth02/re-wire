@@ -18,9 +18,13 @@ class fileview():
         self.popup.show_atx = 1
         self.popup.show_aty = 1
         half = int((self.max_x-2)/2)
+
         self.remoteview = remotefilebrowser(self.popup, self.parent.librewired, "/", 1, 2, half-1, self.max_y-18)
+        self.remoteview.actionSelected = self.remoteActionSelected
+
         self.localview = localfilebrowser(self.popup, path.abspath(self.parent.homepath),
                                           half, 2, half-3, self.max_y-18, 'CAUTION')
+        self.localview.actionSelected = self.localActionSelected
 
         self.closebutton = self.popup.add(npyscreen.ButtonPress, relx=2, rely=self.max_y-6, name="Close")
         self.closebutton.whenPressed = self.close
@@ -36,6 +40,29 @@ class fileview():
         self.editing = False
         self.parent.closeForm(self.formid)
         self.parent.fileview = 0
+
+    def localActionSelected(self, sourcepath, pathtype, action):
+        if 'Upload' in action:
+            target = self.remoteview.path
+            confirm = npyscreen.notify_ok_cancel("Upload %s to folder %s?" %
+                                                 (sourcepath, target), "Start upload")
+            if not confirm:
+                return 0
+            transfer = self.parent.librewired.upload(sourcepath, target)
+            self.parent.transfers.append(transfer)
+            return 1
+        #npyscreen.notify_confirm("Local: %s - %s - %s" % (path, pathtype, action))
+
+    def remoteActionSelected(self, sourcepath, pathtype, action):
+        if 'Download' in action:
+            target = self.localview.path
+            confirm = npyscreen.notify_ok_cancel("Download %s to local folder %s?" %
+                                                 (sourcepath, target), "Start download")
+            if not confirm:
+                return 0
+            transfer = self.parent.librewired.download(target, sourcepath)
+            self.parent.transfers.append(transfer)
+            return 1
 
 
 class filebrowser(object):
@@ -119,7 +146,6 @@ class filebrowser(object):
         return (0, 0)
 
     def actionSelected(self, path, pathtype, action):
-        npyscreen.notify_confirm("%s - %s - %s" % (path, pathtype, action))
         pass
 
     def popupmenu(self, path, pathtype, options=False):
@@ -152,10 +178,10 @@ class filebrowser(object):
 
 class localfilebrowser(filebrowser):
     def __init__(self, parentform, path, relx, rely, width, height, color="NO_EDIT"):
+        self.foldertypes = {0: "(%s)"}
         super(localfilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
         self.fileoptions = ['Upload']
         self.diroptions = ['Upload']
-        self.foldertypes = {0: "(%s)"}
 
     def populate(self):
         self.items = []
@@ -164,7 +190,7 @@ class localfilebrowser(filebrowser):
                 if "." in aitem[:1]:
                     continue
                 if path.isdir(path.join(self.path, aitem)):
-                    self.items.append("[%s]" % aitem)
+                    self.items.append(self.foldertypes[0] % aitem)
                     continue
                 self.items.append(aitem)
             self.select.values = self.items
@@ -173,6 +199,9 @@ class localfilebrowser(filebrowser):
         self.label.value = "Local: %s" % display_path(self.path, self.width-11)
         self.label.update()
         self.select.display()
+
+    def actionSelected(self, path, pathtype, action):
+        pass
 
 
 class remotefilebrowser(filebrowser):
@@ -203,6 +232,9 @@ class remotefilebrowser(filebrowser):
         self.label.value = "Remote: %s" % display_path(self.path, self.width-11)
         self.label.update()
         self.select.display()
+
+    def actionSelected(self, path, pathtype, action):
+        pass
 
 
 def display_path(apath, length):

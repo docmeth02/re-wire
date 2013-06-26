@@ -31,7 +31,7 @@ class rewiredInstance():
         self.msguserids = []
         self.msgnicks = {}
         self.msgs = {}
-
+        self.transfers = []
         self.notifications = []
 
         icon = self.config.get(profile, 'icon')
