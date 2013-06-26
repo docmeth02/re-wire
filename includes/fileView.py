@@ -1,6 +1,8 @@
 import npyscreen
 import curses
+from includes import rewireFunctions
 from os import path, listdir
+from re import search
 
 
 class fileview():
@@ -19,9 +21,20 @@ class fileview():
         self.popup.show_aty = 1
         half = int((self.max_x-2)/2)
 
-        self.remoteview = remotefilebrowser(self.popup, self.parent.librewired, "/", 1, 2, half-1, self.max_y-18)
-        self.remoteview.actionSelected = self.remoteActionSelected
+        remoteoptions = []
+        if self.parent.librewired.privileges['download']:
+            remoteoptions.append('Download')
+        #if self.parent.librewired.privileges['alterFiles']:
+        remoteoptions.append('Info')
+        if self.parent.librewired.privileges['deleteFiles']:
+            remoteoptions.append('Delete')
+        remotediroptions = remoteoptions
+        if self.parent.librewired.privileges['createFolders']:
+            remotediroptions.append('Create Folder')
 
+        self.remoteview = remotefilebrowser(self.popup, self.parent.librewired, "/", 1, 2, half-1, self.max_y-18,
+                                            remoteoptions, remotediroptions)
+        self.remoteview.actionSelected = self.remoteActionSelected
         self.localview = localfilebrowser(self.popup, path.abspath(self.parent.homepath),
                                           half, 2, half-3, self.max_y-18, 'CAUTION')
         self.localview.actionSelected = self.localActionSelected
@@ -62,7 +75,27 @@ class fileview():
                 return 0
             transfer = self.parent.librewired.download(target, sourcepath)
             self.parent.transfers.append(transfer)
-            return 1
+
+        elif 'Create Folder' in action:
+            options = ['Plain Folder']
+            if self.parent.librewired.privileges['alterFiles']:
+                options.append('Drop Box')
+                options.append('Uploads Folder')
+            create = createFolder(display_path(sourcepath, 20), options)
+            if create:
+                foldertype = options[create[1]]
+                if "Uploads Folder" == foldertype:
+                    foldertype = 2
+                elif "Drop Box" == foldertype:
+                    foldertype = 3
+                else:
+                    foldertype = 1
+                result = self.parent.librewired.createFolder(path.join(sourcepath, create[0]), foldertype)
+                if result:
+                    return 1
+                npyscreen.notify_confirm("Server failed to create Folder!", "Server Error")
+            return 0
+        return 1
 
 
 class filebrowser(object):
@@ -205,12 +238,13 @@ class localfilebrowser(filebrowser):
 
 
 class remotefilebrowser(filebrowser):
-    def __init__(self, parentform, librewired, path, relx, rely, width, height, color="NO_EDIT"):
+    def __init__(self, parentform, librewired, path, relx, rely, width, height,
+                 fileoptions, diroptions, color="NO_EDIT"):
         self.librewired = librewired
         self.foldertypes = {1: '[%s]', 2: '(%s)', 3: '<%s>'}
         super(remotefilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
-        self.fileoptions = ['Download', 'Info', 'Delete']
-        self.diroptions = self.fileoptions + ['Create Folder']
+        self.fileoptions = fileoptions
+        self.diroptions = diroptions
 
     def populate(self):
         self.items = []
@@ -235,6 +269,25 @@ class remotefilebrowser(filebrowser):
 
     def actionSelected(self, path, pathtype, action):
         pass
+
+
+def createFolder(path, options=['Folder', 'Upload Folder', 'Dropbox']):
+    foldertype = 0
+    create = npyscreen.ActionPopup(name="Create Folder in %s" % path)
+    create.on_ok = rewireFunctions.on_ok
+    create.on_cancel = rewireFunctions.on_cancel
+    text = create.add_widget(npyscreen.TitleText, name="Name:", value="", begin_entry_at=8, rely=2)
+    if len(options) > 1:
+        foldertype = create.add_widget(npyscreen.TitleSelectOne, name="Type:", values=options, value=0, rely=4)
+    action = create.edit()
+    if action:
+        if not text.value or search(r'[^A-Za-z0-9 _\-\\]', text.value):
+            npyscreen.notify_confirm("You need to enter a valid filename")
+            return 0
+        if not foldertype:
+            return (text.value, 0)
+        return (text.value, foldertype.value[0])
+    return 0
 
 
 def display_path(apath, length):
