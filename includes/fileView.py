@@ -38,6 +38,9 @@ class fileview():
         self.remoteview = remotefilebrowser(self.popup, self.librewired, "/", 1, 2, half-1, self.max_y-18,
                                             remoteoptions, remotediroptions)
         self.remoteview.actionSelected = self.remoteActionSelected
+        self.remoteview.rootSelected = self.remoteRootSelected
+        self.remoteview.label.add_handlers({curses.ascii.SP: self.remoteRootSelected})
+        self.remoteview.label.add_handlers({curses.ascii.NL: self.remoteRootSelected})
         self.localview = localfilebrowser(self.popup, path.abspath(self.parent.homepath),
                                           half, 2, half-3, self.max_y-18, 'CAUTION')
         self.localview.actionSelected = self.localActionSelected
@@ -69,6 +72,18 @@ class fileview():
             self.parent.transfers.append(transfer)
             return 1
         #npyscreen.notify_confirm("Local: %s - %s - %s" % (path, pathtype, action))
+
+    def remoteRootSelected(self, *args):
+        options = []
+        if self.librewired.privileges['download']:
+            options.append('Download')
+        options.append('Info')
+        if self.librewired.privileges['createFolders']:
+            options.append('Create Folder')
+        action = self.remoteview.popupmenu(self.remoteview.path, 1, options, show_aty=self.remoteview.label.rely)
+        if action:
+            self.remoteActionSelected(self.remoteview.path, 1, action)
+        return 0
 
     def remoteActionSelected(self, sourcepath, pathtype, action):
         if 'Download' in action:
@@ -157,6 +172,7 @@ class filebrowser(object):
         ###
         self.label = self.parent.add_widget(npyscreen.FixedText, relx=self.relx, rely=self.rely, editable=0,
                                             value="", max_width=self.width, color="CURSOR")
+        self.label.path = 0
         self.select = self.parent.add_widget(npyscreen.MultiLineAction, relx=self.relx, rely=self.rely+1,
                                              slow_scroll=True, max_height=self.height - 9, height=self.height-9,
                                              values=self.items, max_width=self.width, color=self.color,
@@ -169,6 +185,9 @@ class filebrowser(object):
         self.select.display()
 
     def populate(self):
+        pass
+
+    def rootSelected(self, *args):
         pass
 
     def itemSelected(self, *args):
@@ -219,7 +238,7 @@ class filebrowser(object):
     def actionSelected(self, path, pathtype, action):
         pass
 
-    def popupmenu(self, path, pathtype, options=False):
+    def popupmenu(self, path, pathtype, options=False, **kwargs):
         if not options:
             options = []
             if pathtype < 0:
@@ -237,6 +256,8 @@ class filebrowser(object):
         menu.show_aty = (self.rely + 3) + (self.select.cursor_line - self.select.start_display_at)
         if menu.show_aty >= self.max_y - 10:
             menu.show_aty = self.max_y - 10
+        if 'show_aty' in kwargs:
+            menu.show_aty = kwargs['show_aty']
         selector = menu.add_widget(npyscreen.MultiLine, values=options, value=None, color="CURSOR",
                                    widgets_inherit_color=True,  slow_scroll=True, return_exit=True,
                                    select_exit=True, width=20)
@@ -274,6 +295,9 @@ class localfilebrowser(filebrowser):
     def actionSelected(self, path, pathtype, action):
         pass
 
+    def rootSelected(self, *args):
+        pass
+
 
 class remotefilebrowser(filebrowser):
     def __init__(self, parentform, librewired, path, relx, rely, width, height,
@@ -283,6 +307,9 @@ class remotefilebrowser(filebrowser):
         super(remotefilebrowser, self).__init__(parentform, path, relx, rely, width, height, color)
         self.fileoptions = fileoptions
         self.diroptions = diroptions
+        self.label.editable = 1
+        self.label.add_handlers({curses.ascii.SP: self.rootSelected})
+        self.label.add_handlers({curses.ascii.NL: self.rootSelected})
 
     def populate(self):
         self.items = []
@@ -306,6 +333,9 @@ class remotefilebrowser(filebrowser):
         self.select.display()
 
     def actionSelected(self, path, pathtype, action):
+        pass
+
+    def rootSelected(self, *args):
         pass
 
 
@@ -369,6 +399,11 @@ def fileInfo(parent, info):
                               rely=15, max_height=2, max_width=23,
                               editable=int(parent.librewired.privileges['alterFiles']))
     form.editw = 8
+    if info.path == '/':
+        name.value = '/'
+        name.editable = 0
+        kind.editable = 0
+
     action = form.edit()
     if action:
         if name.value != path.basename(info.path):
