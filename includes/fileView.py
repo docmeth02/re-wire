@@ -63,6 +63,10 @@ class fileview():
 
     def localActionSelected(self, sourcepath, pathtype, action):
         if 'Upload' in action:
+            if not self.librewired.privileges['uploadAnywhere'] and int(self.remoteview.dirtype) <= 1:
+                npyscreen.notify_confirm("You are not allowed to upload to the remote directory",
+                                         "Not allowed to upload")
+                return 0
             target = self.remoteview.path
             confirm = npyscreen.notify_ok_cancel("Upload %s to folder %s?" %
                                                  (sourcepath, target), "Start upload")
@@ -71,7 +75,6 @@ class fileview():
             transfer = self.librewired.upload(sourcepath, target)
             self.parent.transfers.append(transfer)
             return 1
-        #npyscreen.notify_confirm("Local: %s - %s - %s" % (path, pathtype, action))
 
     def remoteRootSelected(self, *args):
         options = []
@@ -162,7 +165,7 @@ class filebrowser(object):
         self.width = width
         self.height = height
         self.color = color
-        self.dirtype = 0
+        self.dirtype = 1
         self.parentfolder = '* Parent Folder *'
         self.parentpos = 0
         self.fileoptions = []
