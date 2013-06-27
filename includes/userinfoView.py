@@ -141,7 +141,7 @@ class transferIndicator():
         self.slider = self.parent.add(npyscreen.Slider, relx=self.relx, rely=self.rely+1,
                                       out_of=31.4, value=10.2, max_width=self.width-10, editable=0)
         self.speed = self.parent.add(npyscreen.FixedText, relx=self.width-7, rely=self.rely+1,
-                                     value=" @"+format_size(self.speed), editable=0)
+                                     value=" @"+rewireFunctions.format_size(self.speed), editable=0)
 
     def display(self):
         self.label.hidden = 0
@@ -167,35 +167,17 @@ class transferIndicator():
             if filename != self.label.value:
                 self.label.value = filename
                 self.label.update()
-            progress, total = format_size_numeric(progress, total)
+            progress, total = rewireFunctions.format_size_numeric(progress, total)
             if self.slider.out_of != total or self.slider.value != progress:
                 self.slider.out_of = total
                 self.slider.value = progress
                 self.slider.update()
-            if self.speed.value != " @"+format_size(speed)+"/s":
-                self.speed.value = " @"+format_size(speed)+"/s"
+            if self.speed.value != " @"+rewireFunctions.format_size(speed)+"/s":
+                self.speed.value = " @"+rewireFunctions.format_size(speed)+"/s"
                 self.speed.update()
             return
         except ValueError:
             return
-
-
-def format_size(size):
-    for x in [' B', ' kB', ' MB', ' GB']:
-        if size < 1024.0 and size > -1024.0:
-            size = "%3.1f%s" % (size, x)
-            return size
-        size /= 1024.0
-    return "%3.1f%s" % (size, ' TB')
-
-
-def format_size_numeric(progress, size):
-    for x in range(0, 3):
-        if size < 1024.0 and size > -1024.0:
-            return (round(progress, 2), round(size, 2))
-        size /= 1024.0
-        progress /= 1024.0
-    return (round(progress, 2), round(size, 2))
 
 
 def parseVersionString(versionString):

@@ -112,3 +112,21 @@ def checkssWiredImage(string):
         if string.count(chr(128)):
             string = string.replace(chr(128), '')
     return string
+
+
+def format_size(size):
+    for x in [' B', ' kB', ' MB', ' GB']:
+        if size < 1024.0 and size > -1024.0:
+            size = "%3.1f%s" % (size, x)
+            return size
+        size /= 1024.0
+    return "%3.1f%s" % (size, ' TB')
+
+
+def format_size_numeric(progress, size):
+    for x in range(0, 3):
+        if size < 1024.0 and size > -1024.0:
+            return (round(progress, 2), round(size, 2))
+        size /= 1024.0
+        progress /= 1024.0
+    return (round(progress, 2), round(size, 2))

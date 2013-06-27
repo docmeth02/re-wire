@@ -3,12 +3,14 @@ import curses
 from includes import rewireFunctions
 from os import path, listdir
 from re import search
+from time import strftime, localtime
 
 
 class fileview():
     def __init__(self, parent, formid):
         self.parent = parent
         self.formid = formid
+        self.librewired = self.parent.librewired
         self.max_x = self.parent.max_x
         self.max_y = self.parent.max_y
 
@@ -22,18 +24,18 @@ class fileview():
         half = int((self.max_x-2)/2)
 
         remoteoptions = []
-        if self.parent.librewired.privileges['download']:
+        if self.librewired.privileges['download']:
             remoteoptions.append('Download')
-        if self.parent.librewired.privileges['alterFiles']:
+        if self.librewired.privileges['alterFiles']:
             remoteoptions.append('Rename')
         remoteoptions.append('Info')
-        if self.parent.librewired.privileges['deleteFiles']:
+        if self.librewired.privileges['deleteFiles']:
             remoteoptions.append('Delete')
         remotediroptions = remoteoptions
-        if self.parent.librewired.privileges['createFolders']:
+        if self.librewired.privileges['createFolders']:
             remotediroptions.append('Create Folder')
 
-        self.remoteview = remotefilebrowser(self.popup, self.parent.librewired, "/", 1, 2, half-1, self.max_y-18,
+        self.remoteview = remotefilebrowser(self.popup, self.librewired, "/", 1, 2, half-1, self.max_y-18,
                                             remoteoptions, remotediroptions)
         self.remoteview.actionSelected = self.remoteActionSelected
         self.localview = localfilebrowser(self.popup, path.abspath(self.parent.homepath),
@@ -47,6 +49,7 @@ class fileview():
         self.popup.add_handlers({curses.KEY_F3: self.parent.openMessageView})
         self.popup.add_handlers({curses.KEY_F4: self.parent.openNewsView})
         self.popup.add_handlers({curses.KEY_F5: self.close})
+        self.popup.add_handlers({'^D': self.close})
         return self.popup
 
     def close(self, *args, **kwargs):
@@ -62,7 +65,7 @@ class fileview():
                                                  (sourcepath, target), "Start upload")
             if not confirm:
                 return 0
-            transfer = self.parent.librewired.upload(sourcepath, target)
+            transfer = self.librewired.upload(sourcepath, target)
             self.parent.transfers.append(transfer)
             return 1
         #npyscreen.notify_confirm("Local: %s - %s - %s" % (path, pathtype, action))
@@ -74,12 +77,12 @@ class fileview():
                                                  (sourcepath, target), "Start download")
             if not confirm:
                 return 0
-            transfer = self.parent.librewired.download(target, sourcepath)
+            transfer = self.librewired.download(target, sourcepath)
             self.parent.transfers.append(transfer)
         elif 'Delete' in action:
             if npyscreen.notify_ok_cancel("Are you sure you want to delete %s?\nThis action cannot be undone!"
                                           % sourcepath, "Delete"):
-                if not self.parent.librewired.delete(sourcepath):
+                if not self.librewired.delete(sourcepath):
                     npyscreen.notify_confirm("Server failed to delete %s" % sourcepath, "Server Error")
                     return 0
                 self.remoteview.populate()
@@ -94,7 +97,7 @@ class fileview():
                     npyscreen.notify_confirm("You need to enter a valid new filename!")
                     return 0
                 newpath = path.join(path.dirname(oldpath), newpath)
-                if not self.parent.librewired.move(oldpath, newpath):
+                if not self.librewired.move(oldpath, newpath):
                     npyscreen.notify_confirm("Server failed to move %s to %s" % (oldpath, newpath), "Server Error")
                     return 0
                 self.remoteview.populate()
@@ -103,7 +106,7 @@ class fileview():
 
         elif 'Create Folder' in action:
             options = ['Plain Folder']
-            if self.parent.librewired.privileges['alterFiles']:
+            if self.librewired.privileges['alterFiles']:
                 options.append('Drop Box')
                 options.append('Uploads Folder')
             create = createFolder(display_path(sourcepath, 20), options)
@@ -115,11 +118,17 @@ class fileview():
                     foldertype = 3
                 else:
                     foldertype = 1
-                result = self.parent.librewired.createFolder(path.join(sourcepath, create[0]), foldertype)
+                result = self.librewired.createFolder(path.join(sourcepath, create[0]), foldertype)
                 if result:
                     return 1
                 npyscreen.notify_confirm("Server failed to create Folder!", "Server Error")
             return 0
+        elif 'Info' in action:
+            info = self.librewired.stat(sourcepath)
+            if not info:
+                npyscreen.notify_confirm("Server failed to deliver Info", "Server Error")
+                return 0
+            infopopup = fileInfo(self, info)
         return 1
 
 
@@ -306,12 +315,84 @@ def createFolder(path, options=['Folder', 'Upload Folder', 'Dropbox']):
         foldertype = create.add_widget(npyscreen.TitleSelectOne, name="Type:", values=options, value=0, rely=4)
     action = create.edit()
     if action:
-        if not text.value or search(r'[^A-Za-z0-9 _\-\\]', text.value):
+        if not text.value or search(r'[^A-Za-z0-9 _\-\.\\]', text.value):
             npyscreen.notify_confirm("You need to enter a valid filename")
             return 0
         if not foldertype:
             return (text.value, 0)
         return (text.value, foldertype.value[0])
+    return 0
+
+
+def fileInfo(parent, info):
+    form = npyscreen.ActionPopup(name=info.path, lines=20, columns=40)
+    form.show_atx = int((parent.max_x-40)/2)
+    show_aty = 2
+    form.on_ok = rewireFunctions.on_ok
+    form.on_cancel = rewireFunctions.on_cancel
+    name = form.add_widget(npyscreen.TitleText, name="Name:", value=path.basename(info.path), begin_entry_at=10, rely=2,
+                           editable=int(parent.librewired.privileges['alterFiles']))
+    where = form.add_widget(npyscreen.TitleFixedText, name="Where:", value=path.dirname(info.path),
+                            begin_entry_at=12, rely=4, editable=0)
+    types = ['File', 'Folder', 'Upload Folder', 'Dropbox']
+    objtype = form.add_widget(npyscreen.TitleFixedText, name="Type:", value=types[int(info.type)],
+                              begin_entry_at=12, rely=6, editable=0)
+    sizestring = "%s items" % info.size
+    if not int(info.type):
+        sizestring = rewireFunctions.format_size(int(info.size))
+    size = form.add_widget(npyscreen.TitleFixedText, name="Size:", value=sizestring,
+                           begin_entry_at=12, rely=8, editable=0)
+    created = form.add_widget(npyscreen.TitleFixedText, name="Created:",
+                              value=str(strftime('%Y/%m/%d %H:%M:%S',
+                                                 localtime(int(rewireFunctions.wiredTimeToTimestamp(info.created))))),
+                              begin_entry_at=12, rely=10, editable=0)
+    modified = form.add_widget(npyscreen.TitleFixedText, name="Modified:",
+                               value=str(strftime('%Y/%m/%d %H:%M:%S',
+                                                  localtime(int(rewireFunctions.wiredTimeToTimestamp(info.modified))))),
+                               begin_entry_at=12, rely=11, editable=0)
+    if not int(info.type):
+        kind = 0
+        cheksum = form.add_widget(npyscreen.TitleFixedText, name="Checksum:",
+                                  value=str(info.checksum), begin_entry_at=12, rely=13, editable=0)
+    if int(info.type) in range(1, 4):
+        foldertype = ['Folder', 'Upload Folder', 'Dropbox']
+        kind = form.add_widget(npyscreen.TitleSelectOne, name="Kind:", values=foldertype, value=int(info.type)-1,
+                               rely=13, max_height=2, editable=int(parent.librewired.privileges['alterFiles']))
+    commentlabel = form.add_widget(npyscreen.FixedText, value="Comment:", rely=15, editable=0)
+    if not info.comment:
+        info.comment = ""
+    comment = form.add_widget(npyscreen.MultiLineEdit, name="Comment:", value=str(info.comment), relx=14,
+                              rely=15, max_height=2, max_width=23,
+                              editable=int(parent.librewired.privileges['alterFiles']))
+    form.editw = 8
+    action = form.edit()
+    if action:
+        if name.value != path.basename(info.path):
+            if parent.librewired.privileges['alterFiles']:
+                newpath = path.join(path.dirname(info.path), name.value)
+                confirm = npyscreen.notify_ok_cancel("Rename %s to %s?" % (info.path, newpath))
+                if confirm:
+                    if not parent.librewired.move(info.path, newpath):
+                        npyscreen.notify_confirm("Server failed to rename file", "Server Error")
+                    else:
+                        info.path = newpath
+                        parent.remoteview.populate()
+        if kind:
+            if int(kind.value[0] + 1) != int(info.type):
+                if parent.librewired.privileges['alterFiles']:
+                    newtype = int(kind.value[0] + 1)
+                    if not parent.librewired.changeType(info.path, newtype):
+                        npyscreen.notify_confirm("Server failed to change folder Type", "Server Error")
+                    else:
+                        info.type = newtype
+                        parent.remoteview.populate()
+
+        if comment.value != info.comment:
+            if parent.librewired.privileges['alterFiles']:
+                if not parent.librewired.changeComment(info.path, str(comment.value)):
+                    npyscreen.notify_confirm("Server failed to apply new comment", "Server Error")
+                else:
+                    info.comment = str(comment.value)
     return 0
 
 
