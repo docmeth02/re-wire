@@ -106,6 +106,9 @@ class fileview():
 
         elif 'Create Folder' in action:
             options = ['Plain Folder']
+            #npyscreen.notify_confirm(str(pathtype))
+            if 'FILE' == str(pathtype):
+                sourcepath = path.dirname(sourcepath)
             if self.librewired.privileges['alterFiles']:
                 options.append('Drop Box')
                 options.append('Uploads Folder')
@@ -120,6 +123,7 @@ class fileview():
                     foldertype = 1
                 result = self.librewired.createFolder(path.join(sourcepath, create[0]), foldertype)
                 if result:
+                    self.remoteview.populate()
                     return 1
                 npyscreen.notify_confirm("Server failed to create Folder!", "Server Error")
             return 0
