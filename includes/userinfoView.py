@@ -24,9 +24,11 @@ class userinfoview():
         self.popup.formid = self.formid
         self.popup.show_atx = int((self.max_x - self.width) / 2)
         self.popup.show_aty = 1
-        self.popup.add_handlers({curses.KEY_F3: self.close})
-        #self.popup.add_handlers({curses.KEY_F1: self.parent.prevForm})
-        #self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
+        self.popup.add_handlers({curses.KEY_F1: self.parent.prevForm})
+        self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
+        self.popup.add_handlers({"^D": self.close})
+        self.popup.beforeEditing = self.beforeEditing
+        self.popup.afterEditing = self.afterEditing
 
         self.user = self.popup.add(npyscreen.TitleText, relx=3, rely=2, name="User:", value="admin", editable=0,
                                    field_width=self.width-15, begin_entry_at=11)
@@ -109,10 +111,10 @@ class userinfoview():
         for i in range(0, 2):
             if not self.transfer[i].active:
                 self.transfer[i].hide()
-
-        self.refreshtimer = Timer(2, self.populate)
-        self.refreshtimer.start()
         self.popup.display()
+        if self.refreshtimer:
+            self.refreshtimer = Timer(2, self.populate)
+            self.refreshtimer.start()
         return
 
     def close(self, *args, **kwargs):
@@ -122,6 +124,17 @@ class userinfoview():
         self.editable = False
         self.editing = False
         self.parent.closeForm(self.formid)
+
+    def beforeEditing(self):
+        if not self.refreshtimer:
+            self.refreshtimer = Timer(2, self.populate)
+            self.refreshtimer.start()
+
+    def afterEditing(self):
+        if self.refreshtimer:
+            self.refreshtimer.cancel()
+            self.refreshtimer.join(1)
+            self.refreshtimer = 0
 
 
 class transferIndicator():
