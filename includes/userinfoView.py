@@ -59,7 +59,6 @@ class userinfoview():
         return self.popup
 
     def populate(self):
-        curses.flash()
         userinfo = self.parent.librewired.getUserInfo(self.userid)
         if not userinfo:
             return 0

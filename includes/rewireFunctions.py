@@ -1,7 +1,8 @@
 from ConfigParser import ConfigParser
 from time import time, altzone, timezone, mktime, daylight
 from datetime import datetime, timedelta
-from os import path
+from os import path, environ, pathsep, devnull, getcwd
+from subprocess import call
 import npyscreen
 
 
@@ -112,3 +113,31 @@ def checkssWiredImage(string):
         if string.count(chr(128)):
             string = string.replace(chr(128), '')
     return string
+
+
+def gitVersion(basepath):
+    # parse git branch and commitid to server version string
+    hasgit = 0
+    # test for git command
+    for dir in environ['PATH'].split(pathsep):
+        if path.exists(path.join(dir, 'git')):
+            try:
+                call([path.join(dir, 'git')], stdout=open(devnull, "w"), stderr=open(devnull, "w"))
+            except OSError, e:
+                break
+            hasgit = 1
+    if hasgit:
+        if path.exists(path.join(getcwd(), basepath, "git-version.sh")):
+            # both git and our version script exist
+            call([path.join(getcwd(), basepath, "git-version.sh")],
+                 stdout=open(devnull, "w"), stderr=open(devnull, "w"))
+    # check for version token and load it
+    if path.exists(path.join(getcwd(), basepath, ".gitversion")):
+        version = 0
+        try:
+            with open(path.join(getcwd(), basepath, ".gitversion"), 'r') as f:
+                version = f.readline()
+        except (IOError, OSError):
+            return 0
+        return version.strip()
+    return 0

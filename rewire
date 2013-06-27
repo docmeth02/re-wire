@@ -22,6 +22,8 @@ class reWire(npyscreen.NPSAppManaged):
         self.formIDs = []
         self.homepath = path.dirname(argv[0])
         self.config = rewireFunctions.load_config(self.homepath)
+        self.version = rewireFunctions.gitVersion(path.join(self.homepath, 'includes'))
+        self.appname = "re:wire"
         self.chooser = newconnection.NewConnection(self)
         self.registerForm("MAIN", self.chooser)
         self.timer = Timer(5, self.timerfired)

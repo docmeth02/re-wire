@@ -44,8 +44,8 @@ class rewiredInstance():
             if path.exists(icon):
                 self.librewired.loadIcon(icon)
         self.librewired.nick = self.config.get(profile, 'nick')
-        self.librewired.appname = "re:wire"
-        self.librewired.version = "WIP"
+        self.librewired.appname = self.parent.appname
+        self.librewired.version = self.parent.version
         self.librewired.status = self.config.get(profile, 'status')
         self.librewired.autoreconnect = self.autoreconnect
         self.librewired.start()
