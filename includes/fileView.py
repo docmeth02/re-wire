@@ -28,6 +28,7 @@ class fileview():
             remoteoptions.append('Download')
         if self.librewired.privileges['alterFiles']:
             remoteoptions.append('Rename')
+            remoteoptions.append('Move')
         remoteoptions.append('Info')
         if self.librewired.privileges['deleteFiles']:
             remoteoptions.append('Delete')
@@ -151,6 +152,28 @@ class fileview():
                 npyscreen.notify_confirm("Server failed to deliver Info", "Server Error")
                 return 0
             infopopup = fileInfo(self, info)
+        elif 'Move' in action:
+            select = dirpopup(self)
+            select.build()
+            domove = select.edit()
+            if domove:
+                if select.value:
+                    name = path.basename(sourcepath)
+                    target = path.join(select.value, name)
+                    if sourcepath == target:
+                        npyscreen.notify_confirm("%s and %s are the same path" % (sourcepath, target), "Unable to move")
+                        return 0
+                    if path.commonprefix([sourcepath, target]) == sourcepath:
+                        npyscreen.notify_confirm("Can't move %s into a subdir of itself" % sourcepath, "Unable to move")
+                        return 0
+                    confirm = npyscreen.notify_ok_cancel("Move %s to %s" % (sourcepath, target), "Confirm move")
+                    if not confirm:
+                        return 0
+                    result = self.librewired.move(sourcepath, target)
+                    if not result:
+                        npyscreen.notify_confirm("Failed to move %s" % sourcepath, "Server Error")
+                        return 0
+                    self.remoteview.populate()
         return 1
 
 
@@ -217,7 +240,6 @@ class filebrowser(object):
             self.path = path.split(self.path)[0]
             self.dirtype = 1
             if self.path in self.pathtree:
-                curses.flash()
                 self.dirtype = self.pathtree[self.path]
             if self.parentpos:
                 self.select.cursor_line = self.parentpos  # restore position
@@ -350,6 +372,29 @@ class remotefilebrowser(filebrowser):
         pass
 
 
+class remotedirbrowser(remotefilebrowser):
+    def populate(self):
+        self.items = []
+        if not self.librewired.loggedin:
+            return 0
+        result = self.librewired.listDirectory(self.path)
+        if not type(result) is list:
+            npyscreen.notify_confirm("Server failed to list %s" % self.path, "Server Error")
+            return 0
+        dirlist = sorted(result, key=lambda x: x.path,  cmp=lambda x, y: cmp(x.lower(), y.lower()))
+        for aitem in dirlist:
+            if int(aitem.type) in range(1, len(self.foldertypes)+1):
+                self.items.append(self.foldertypes[int(aitem.type)] % path.basename(aitem.path))
+                continue
+            pass
+        self.select.values = self.items
+        if self.path != "/":
+            self.items.insert(0, self.parentfolder)
+        self.label.value = "Remote: %s" % display_path(self.path, self.width-11)
+        self.label.update()
+        self.select.display()
+
+
 def createFolder(path, options=['Folder', 'Upload Folder', 'Dropbox']):
     foldertype = 0
     create = npyscreen.ActionPopup(name="Create Folder in %s" % path)
@@ -444,6 +489,42 @@ def fileInfo(parent, info):
                 else:
                     info.comment = str(comment.value)
     return 0
+
+
+class dirpopup():
+    def __init__(self, parent):
+        self.parent = parent
+        self.name = "Select destination folder:"
+
+    def build(self):
+        self.form = npyscreen.ActionPopup(name=self.name, lines=20, columns=40)
+        self.form.show_atx = int((self.parent.max_x-40)/2)
+        self.form.show_aty = 2
+        self.form.on_ok = self.on_ok
+        self.form.on_cancel = rewireFunctions.on_cancel
+        self.remoteview = remotedirbrowser(self.form, self.parent.librewired, "/", 1, 2, 35, 18, [], ['Select'])
+        self.remoteview.actionSelected = self.folderSelected
+        self.value = 0
+
+    def edit(self):
+        action = self.form.edit()
+        return action
+
+    def on_ok(self):
+        dirpath, pathtype = self.remoteview.selectionIsPath(self.remoteview.items[self.remoteview.select.cursor_line])
+        if dirpath:
+            self.value = path.join(self.remoteview.path, dirpath)
+            return 1
+        return 0
+
+    def folderSelected(self, sourcepath, pathtype, action):
+        #npyscreen.notify_confirm(str("%s %s %s" % (sourcepath, pathtype, action)))
+        if 'Select' in action:
+            self.form.ok_button.value = 1
+            self.value = sourcepath
+            self.form.editing = 0
+            self.form.exit_editing()
+        return
 
 
 def display_path(apath, length):
