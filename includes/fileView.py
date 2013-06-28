@@ -168,6 +168,7 @@ class filebrowser(object):
         self.dirtype = 1
         self.parentfolder = '* Parent Folder *'
         self.parentpos = 0
+        self.pathtree = {}
         self.fileoptions = []
         self.diroptions = []
         self.items = []
@@ -211,7 +212,13 @@ class filebrowser(object):
 
     def itemHighlighted(self, selection, *args):
         if selection == self.parentfolder:
+            if self.path in self.pathtree:
+                del(self.pathtree[self.path])
             self.path = path.split(self.path)[0]
+            self.dirtype = 1
+            if self.path in self.pathtree:
+                curses.flash()
+                self.dirtype = self.pathtree[self.path]
             if self.parentpos:
                 self.select.cursor_line = self.parentpos  # restore position
                 self.parentpos = 0
@@ -221,6 +228,7 @@ class filebrowser(object):
         if isdir:
             self.dirtype = dirtype
             self.path = path.join(self.path, isdir)
+            self.pathtree[self.path] = dirtype
             self.parentpos = self.select.cursor_line  # store position for parent folder
             self.select.cursor_line = 0
             self.populate()
