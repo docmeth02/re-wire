@@ -137,7 +137,7 @@ class userinfoview():
             self.refreshtimer = 0
 
 
-class transferIndicator():
+class transferIndicator(object):
     def __init__(self, parent, relx, rely, width, label="Transfer:", filename="Null"):
         self.parent = parent
         self.relx = relx

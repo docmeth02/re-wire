@@ -53,6 +53,7 @@ class fileview():
         self.popup.add_handlers({curses.KEY_F3: self.parent.openMessageView})
         self.popup.add_handlers({curses.KEY_F4: self.parent.openNewsView})
         self.popup.add_handlers({curses.KEY_F5: self.close})
+        self.popup.add_handlers({curses.KEY_F6: self.parent.openTransferView})
         self.popup.add_handlers({'^D': self.close})
         return self.popup
 
@@ -518,7 +519,6 @@ class dirpopup():
         return 0
 
     def folderSelected(self, sourcepath, pathtype, action):
-        #npyscreen.notify_confirm(str("%s %s %s" % (sourcepath, pathtype, action)))
         if 'Select' in action:
             self.form.ok_button.value = 1
             self.value = sourcepath

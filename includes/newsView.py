@@ -22,6 +22,8 @@ class newsview():
         self.popup.add_handlers({curses.KEY_F2: self.parent.nextForm})
         self.popup.add_handlers({curses.KEY_F3: self.parent.openMessageView})
         self.popup.add_handlers({curses.KEY_F4: self.closeview})
+        self.popup.add_handlers({curses.KEY_F5: self.parent.openFileView})
+        self.popup.add_handlers({curses.KEY_F6: self.parent.openTransferView})
         self.box = self.popup.add_widget(npyscreen.Pager, values="", relx=2, rely=1, hidden=0, editable=1,
                                          width=self.max_x - 10, max_width=self.max_x - 10, color="CURSOR",
                                          height=self.max_y-7,  widgets_inherit_color=True, autowrap=True)
