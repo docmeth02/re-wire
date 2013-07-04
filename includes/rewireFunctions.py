@@ -159,3 +159,21 @@ def gitVersion(basepath):
             return 0
         return version.strip()
     return 0
+
+
+def handleException(excType, excValue, traceback):
+        if excType == SystemExit:  # Don't log us ending threads using SystemExit
+            return 0
+        from logging import getLogger
+        logger = getLogger("re:wire")
+        logger.error("Uncaught exception", exc_info=(excType, excValue, traceback))
+
+
+def threading_excepthook(view):
+    @wraps(view)
+    def run(*args, **kwargs):
+        try:
+            return view(*args, **kwargs)
+        except:
+            sys.excepthook(*sys.exc_info())
+    return run
