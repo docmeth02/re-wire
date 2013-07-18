@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from signal import signal, SIGINT, SIGTERM
 from time import sleep, time
-from logging import getLogger, DEBUG, NullHandler
+from logging import getLogger, DEBUG, NullHandler, FileHandler
 from includes import newconnection, rewiredInstance
 from includes import rewireFunctions
 from threading import Timer
@@ -31,6 +31,8 @@ class reWire(npyscreen.NPSAppManaged):
         self.chooser.runAutoconnect()
         self.activeform = 0
         self.logger = getLogger('lib:re:wired')
+        self.exceptlogger = getLogger('re:wire')
+        self.exceptlogger.addHandler(FileHandler(path.join(self.homepath, 'exceptions.log')))
         self.handler = NullHandler()
         self.logger.addHandler(self.handler)
 
@@ -111,5 +113,6 @@ class reWire(npyscreen.NPSAppManaged):
         self.timer = Timer(5, self.timerfired)
         self.timer.start()
 
+sys.excepthook = rewireFunctions.handleException
 app = reWire()
 app.run()
