@@ -9,6 +9,7 @@ class NewConnection(npyscreen.FormBaseNew):
         self.config = self.parent.config
         self.appliedBookmark = 'DEFAULT'
         self.formid = "MAIN"
+        self.autoform = self.formid
         super(NewConnection, self).__init__(**kwargs)
         self.add_handlers({"^D": self.exit_application})
         self.add_handlers({"^Q": self.exit_application})
@@ -127,13 +128,14 @@ class NewConnection(npyscreen.FormBaseNew):
         self.parent.switchForm(form)
 
     def runAutoconnect(self):
+        form = "MAIN"
         for aserver in self.config.sections():
             if aserver != "defaults":
                 if int(self.config.get(aserver, 'connectonstart')):
                     form = self.autoconnect(aserver)
+        self.autoform = form  # set active form to the last auto connected server
 
-
-    def autoconnect(self, bookmarkname, switchTo=False):
+    def autoconnect(self, bookmarkname):
         if not self.config.has_section(bookmarkname):
             return 0
 
@@ -159,8 +161,6 @@ class NewConnection(npyscreen.FormBaseNew):
         form = "%s-CHAT1" % (conID)
         self.parent.servers[conID].forms.append(form)
         self.parent.registerForm(form, self.parent.servers[conID].chats[1])
-        if switchTo:
-            self.parent.switchForm(form)
         return form
 
 

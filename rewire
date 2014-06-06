@@ -27,7 +27,6 @@ class reWire(npyscreen.NPSAppManaged):
         self.appname = "re:wire"
         self.chooser = newconnection.NewConnection(self)
         self.registerForm("MAIN", self.chooser)
-        self.activeform = "MAIN"
         self.timer = Timer(5, self.timerfired)
         self.timer.start()
         self.chooser.runAutoconnect()
@@ -35,7 +34,9 @@ class reWire(npyscreen.NPSAppManaged):
         self.exceptlogger = getLogger('re:wire')
         self.exceptlogger.addHandler(FileHandler(path.join(self.homepath, 'exceptions.log')))
         self.handler = NullHandler()
+        self.activeform = self.chooser.autoform  # if autoconnect ran switch to last server connected
         self.logger.addHandler(self.handler)
+        self.NEXT_ACTIVE_FORM = self.activeform
 
     def shutdown(self):
         for akey, aserver in self.servers.items():
