@@ -106,6 +106,7 @@ class rewiredInstance():
                     self.parent.removeForm(aform.formid)
             self.parent.removeConnection(self.conID)
             self.parent.switchNextForm()
+            self.parent.removeForm(formid)
             return 1
         self.parent.removeForm(formid)
         self.parent.switchForm("%s-CHAT1" % self.conID)  # back to public chat
