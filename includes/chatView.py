@@ -91,6 +91,8 @@ class chatview(npyscreen.FormMutt):
         self.chatinput.edit()
 
     def chatreceived(self, nick, chat, action):
+        if ord(chat[0]) == 14:
+            chat = chat[1:]
         if action:
             self.appendChat("*** %s %s" % (str(nick), str(chat)))
         else:
