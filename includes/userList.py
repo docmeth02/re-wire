@@ -83,8 +83,8 @@ class userlist():
                     self.users[i].pos = i
                     self.users[i].isupdated = 0
                 i += 1
-            if i != self.maxheight:
-                for i in range(i, self.maxheight):
+            if i != self.maxheight-1:
+                for i in range(i, self.maxheight-1):
                     self.widgets[i].value = " " * self.width
                     self.widgets[i].name = 0
                     self.widgets[i].color = ''
