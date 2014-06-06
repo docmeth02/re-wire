@@ -21,11 +21,11 @@ class NewConnection(npyscreen.FormBaseNew):
         start_y = int(round((self.max_y - 5) / 2))
         self.name = "re:wire new connection"
         self.server = self.add(npyscreen.TitleText, relx=start_x, rely=start_y,
-                               name="Server:      ", value="", field_width=20, begin_entry_at=16)
+                               name="Server:      ", value="", field_width=30, begin_entry_at=16)
         self.user = self.add(npyscreen.TitleText, relx=start_x, rely=start_y+1,
-                             name="Username:", value="", field_width=20, begin_entry_at=16)
+                             name="Username:", value="", field_width=30, begin_entry_at=16)
         self.password = self.add(npyscreen.TitlePassword, relx=start_x, rely=start_y+2,
-                                 name="Password: ", value="", field_width=20, begin_entry_at=16)
+                                 name="Password: ", value="", field_width=30, begin_entry_at=16)
         self.reconnect = self.add(npyscreen.Checkbox, relx=start_x, rely=start_y+3,
                                   name="Reconnect automatically")
         self.connect = self.add(npyscreen.ButtonPress, relx=start_x+6, rely=start_y+4,
@@ -45,7 +45,6 @@ class NewConnection(npyscreen.FormBaseNew):
 
     def exit_application(self, *args):
         self.parent.shutdown()
-        curses.beep()
         self.parentApp.setNextForm(None)
         self.editing = False
         raise SystemExit
@@ -74,7 +73,6 @@ class NewConnection(npyscreen.FormBaseNew):
     def applyBookmark(self, bookmarkname):
         if not self.config.has_section(bookmarkname):
             if bookmarkname != "DEFAULT":
-                curses.beep()
                 return 0
         self.server.value = self.config.get(bookmarkname, 'server')
         if int(self.config.get(bookmarkname, 'port')) != 2000:
@@ -132,7 +130,8 @@ class NewConnection(npyscreen.FormBaseNew):
         for aserver in self.config.sections():
             if aserver != "defaults":
                 if int(self.config.get(aserver, 'connectonstart')):
-                    self.autoconnect(aserver)
+                    form = self.autoconnect(aserver)
+
 
     def autoconnect(self, bookmarkname, switchTo=False):
         if not self.config.has_section(bookmarkname):
@@ -162,6 +161,7 @@ class NewConnection(npyscreen.FormBaseNew):
         self.parent.registerForm(form, self.parent.servers[conID].chats[1])
         if switchTo:
             self.parent.switchForm(form)
+        return form
 
 
 class bookmarkPopUp():

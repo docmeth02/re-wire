@@ -6,7 +6,14 @@ from threading import RLock
 from time import strftime
 
 
-class chatview(npyscreen.FormMutt):
+class ChatForm(npyscreen.fm_form_edit_loop.FormNewEditLoop, npyscreen.fmForm._FormBase):
+    BLANK_LINES_BASE = 0
+    BLANK_COLUMNS_RIGHT = 0
+    # use the new-style edit loop.
+    pass
+
+
+class chatview(ChatForm):
     def __init__(self, parent, formid, chatid, **kwargs):
         self.chat = chatid
         self.parent = parent
@@ -40,18 +47,19 @@ class chatview(npyscreen.FormMutt):
             chat = "Private Chat %s" % self.chat
         self.name = "re:wire @%s: %s " % (self.parent.host, chat)
         self.title = self.add(npyscreen.FixedText, name="title", editable=0, rely=0, value=self.name)
-        self.box = self.add(npyscreen.Pager, rely=2, relx=0, width=self.max_x - 18, height=self.max_y - 4,
-                            max_width=self.max_x - 17, max_height=self.max_y - 2, editable=1, color="CURSOR",
+        self.box = self.add(npyscreen.Pager, rely=2, relx=1, width=self.max_x - 18, height=self.max_y - 4,
+                            max_width=self.max_x - 18, max_height=self.max_y - 4, editable=1, color="CURSOR",
                             widgets_inherit_color=True)
         self.userlist = userList.userlist(self, self.max_x - 17, 1, 16, self.max_y - 3)
 
         self.topic = self.add(npyscreen.TitleText, name="Topic:", value="", begin_entry_at=9, hidden=1,
-                              relx=0, rely=1, editable=False, max_width=self.max_x - 20, color="NO_EDIT")
+                              relx=2, rely=1, editable=False, max_width=self.max_x - 20, color="NO_EDIT")
         self.topic.label_widget.hidden = 1
 
-        self.chatlabel = self.add(npyscreen.TitleText, name="Chat: ", relx=0, rely=self.max_y - 1, editable=False)
-        self.chatinput = self.add(autoCompleter.autocompleter, relx=6, rely=self.max_y - 1,
-                                  begin_entry_at=1, max_width=self.max_x - 17, name="%s-%s" % (self.formid, self.chat))
+        self.chatlabel = self.add(npyscreen.TitleFixedText, name="Chat:", value="", relx=1,
+                                  max_height=1, rely=self.max_y - 2, editable=False)
+        self.chatinput = self.add(autoCompleter.autocompleter, relx=7, rely=self.max_y - 2,
+                                  begin_entry_at=7, max_width=self.max_x - 17, name="%s-%s" % (self.formid, self.chat))
 
         self.chatinput.hookParent(self)
         self.chatinput.add_handlers({curses.ascii.NL: self.chatentered})

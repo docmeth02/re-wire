@@ -18,9 +18,10 @@ class userlist():
             if not self.parent.chat in order:
                 npyscreen.notify_confirm("No such order: %s" % self.parent.chat)
                 return 0
-            for akey in range(0, self.maxheight):
+            for akey in range(0, self.maxheight-1):
                 self.widgets[akey] = self.parent.add(userListText, name="%s-%s" % (self.parent.chat, akey),
-                                                     relx=self.relx, rely=self.rely+akey, value="", max_height=1,
+                                                     relx=self.relx, rely=self.rely+akey,
+                                                     value="", max_height=1, begin_entry_at=0,
                                                      max_width=self.width, width=self.width, editable=0)
                 self.widgets[akey].hookparent(self)
                 self.widgets[akey].add_handlers({curses.ascii.NL: self.widgets[akey].selected})
@@ -60,8 +61,9 @@ class userlist():
             return 1
 
     def refreshView(self):
-        for i in range(0, self.maxheight):
-            self.widgets[i].display()
+        for awidget in self.widgets:
+            if hasattr(awidget, 'display'):
+                awidget.display()
         return
 
     def updateList(self):

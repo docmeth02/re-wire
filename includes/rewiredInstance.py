@@ -307,7 +307,6 @@ class rewiredInstance():
         try:
             form = self.parent.returnActiveForm()
         except AttributeError:
-            curses.beep()
             return 0
         return form
 
