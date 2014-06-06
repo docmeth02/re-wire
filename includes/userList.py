@@ -35,7 +35,7 @@ class userlist():
                 if int(auser.admin):
                     acctype = 2
                 self.users.append(UserListItem(self, int(auser.userid),
-                                               auser.nick, auser.status, int(auser.idle), acctype))
+                                               decode(auser.nick), auser.status, int(auser.idle), acctype))
             self.updateList()
             return 1
 
@@ -55,7 +55,7 @@ class userlist():
                 if int(auser.admin):
                     acctype = 2
                 self.users.append(UserListItem(self, int(auser.userid),
-                                               auser.nick, auser.status, int(auser.idle), acctype))
+                                               decode(auser.nick), auser.status, int(auser.idle), acctype))
             self.updateList()
             return 1
 
@@ -70,7 +70,7 @@ class userlist():
             i = 0
             for i in range(0, len(self.users)):
                 if self.users[i].pos != i or self.users[i].isupdated:
-                    name = self.users[i].nick
+                    name = decode(self.users[i].nick)
                     if self.users[i].isIdle:
                         name = "*%s" % name
                     self.widgets[i].value = name + " " * (self.width - len(name))
@@ -112,7 +112,7 @@ class userlist():
                                 acctype = 1
                             if int(user.admin):
                                 acctype = 2
-                        self.users[i].nick = str(user.nick)
+                        self.users[i].nick = decode(user.nick)
                         self.users[i].status = str(user.status)
                         self.users[i].isIdle = int(user.idle)
                         self.users[i].acctype = acctype
@@ -132,7 +132,7 @@ class userlist():
                 if int(auser.admin):
                     acctype = 2
                 self.users.append(UserListItem(self, int(auser.userid),
-                                               auser.nick, auser.status, int(auser.idle), acctype))
+                                               decode(auser.nick), auser.status, int(auser.idle), acctype))
                 self.updateList()
                 return 1
             return 0
@@ -147,7 +147,7 @@ class userlist():
             options.append('Kick')
         if self.parent.librewired.privileges['banUsers']:
             options.append('Ban')
-        menu = npyscreen.Popup(name="User: %s" % user.nick, framed=True, lines=len(options)+4, columns=25)
+        menu = npyscreen.Popup(name="User: %s" % decode(user.nick), framed=True, lines=len(options)+4, columns=25)
         menu.show_atx = self.parent.max_x-30
         menu.show_aty = 3
         selector = menu.add_widget(npyscreen.MultiLine, values=options, value=None, color="CURSOR",
@@ -172,7 +172,7 @@ class userlist():
                 self.parent.openUserInfo(userid)
                 return 1
             if "Kick" in value and self.parent.librewired.privileges['kickUsers']:
-                kick = rewireFunctions.textDialog("Kick user %s" % user.nick,
+                kick = rewireFunctions.textDialog("Kick user %s" % decode(user.nick),
                                                   inputlabel="Enter message to show (optional):", oklabel="Kick")
                 if kick:
                     if type(kick) is str:
@@ -182,7 +182,7 @@ class userlist():
                     if not self.parent.kickUser(userid, msg):
                         return 0
             if "Ban" in value and self.parent.librewired.privileges['banUsers']:
-                ban = rewireFunctions.textDialog("Ban user %s" % user.nick,
+                ban = rewireFunctions.textDialog("Ban user %s" % decode(user.nick),
                                                  inputlabel="Enter message to show (optional):", oklabel="Ban")
                 if ban:
                     if type(ban) is str:
@@ -207,16 +207,16 @@ class userlist():
         with self.parent.lock:
             for auser in self.users:
                 if auser.userid == userid:
-                    if auser.nick == newnick:
+                    if decode(auser.nick) == decode(newnick):
                         return 0
-                    return auser.nick
+                    return decode(auser.nick)
             return 0
 
     def yieldnicks(self):
         with self.parent.lock:
             nicks = []
             for auser in self.users:
-                nicks.append(auser.nick)
+                nicks.append(decode(auser.nick))
             return nicks
 
 
@@ -240,3 +240,12 @@ class userListText(npyscreen.FixedText):
         if self.name:
             self.userlist.itemSelected(self.name)
         return 1
+
+
+def decode(s):
+    try:
+        s = unicode(s, errors='ignore')
+    except:
+        pass
+    s = s.encode("UTF-8")
+    return s
